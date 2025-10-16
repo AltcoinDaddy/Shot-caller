@@ -99,7 +99,7 @@ export function MarketplaceListingCard({
   }
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg active:shadow-md transition-shadow mobile-card touch-target">
       <div className="aspect-square relative">
         <OptimizedNFTImage
           src={listing.nftDetails.imageUrl}
@@ -110,56 +110,58 @@ export function MarketplaceListingCard({
           priority={false}
         />
         <Badge 
-          className={`absolute top-2 right-2 text-white ${getRarityColor(listing.nftDetails.rarity)}`}
+          className={`absolute top-2 right-2 text-white text-xs ${getRarityColor(listing.nftDetails.rarity)}`}
         >
-          {listing.nftDetails.rarity}
+          <span className="hidden sm:inline">{listing.nftDetails.rarity}</span>
+          <span className="sm:hidden">{listing.nftDetails.rarity.slice(0, 1)}</span>
         </Badge>
         {isOwnListing && (
-          <Badge className="absolute top-2 left-2 bg-green-600 text-white">
-            Your Listing
+          <Badge className="absolute top-2 left-2 bg-green-600 text-white text-xs">
+            <span className="hidden sm:inline">Your Listing</span>
+            <span className="sm:hidden">Yours</span>
           </Badge>
         )}
       </div>
       
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-lg">
-          {listing.nftDetails.playerName}
-          <Badge variant="outline">{listing.nftDetails.sport}</Badge>
+        <CardTitle className="flex items-center justify-between text-base sm:text-lg">
+          <span className="truncate pr-2">{listing.nftDetails.playerName}</span>
+          <Badge variant="outline" className="text-xs flex-shrink-0">{listing.nftDetails.sport}</Badge>
         </CardTitle>
-        <CardDescription>{listing.nftDetails.team}</CardDescription>
+        <CardDescription className="text-sm truncate">{listing.nftDetails.team}</CardDescription>
       </CardHeader>
       
       <CardContent className="pb-2">
-        <div className="space-y-2 text-sm">
+        <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Listed:</span>
-            <span>{formatDate(listing.createdAt)}</span>
+            <span className="text-right">{formatDate(listing.createdAt)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Seller:</span>
-            <span className="font-mono text-xs">
-              {listing.sellerAddress.slice(0, 6)}...{listing.sellerAddress.slice(-4)}
+            <span className="font-mono text-xs truncate ml-2">
+              {listing.sellerAddress.slice(0, 4)}...{listing.sellerAddress.slice(-4)}
             </span>
           </div>
           {listing.expiresAt && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Expires:</span>
-              <span>{formatDate(listing.expiresAt)}</span>
+              <span className="text-right">{formatDate(listing.expiresAt)}</span>
             </div>
           )}
         </div>
       </CardContent>
       
-      <CardFooter className="flex items-center justify-between pt-2">
-        <div className="text-2xl font-bold text-primary">
+      <CardFooter className="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-2 gap-3 sm:gap-2">
+        <div className="text-xl sm:text-2xl font-bold text-primary text-center sm:text-left">
           {listing.price} FLOW
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Dialog open={showDetails} onOpenChange={setShowDetails}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none touch-target">
                 <Eye className="h-4 w-4 mr-1" />
-                Details
+                <span className="text-xs sm:text-sm">Details</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -215,26 +217,36 @@ export function MarketplaceListingCard({
           </Dialog>
 
           {canPurchase && (
-            <Button onClick={handlePurchase} disabled={loading}>
+            <Button 
+              onClick={handlePurchase} 
+              disabled={loading}
+              className="flex-1 sm:flex-none touch-target"
+              size="sm"
+            >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-1" />
               ) : (
                 <ShoppingCart className="h-4 w-4 mr-1" />
               )}
-              Buy Now
+              <span className="text-xs sm:text-sm">Buy Now</span>
             </Button>
           )}
 
           {isOwnListing && listing.status === 'active' && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" disabled={loading}>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  disabled={loading}
+                  className="flex-1 sm:flex-none touch-target"
+                >
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-1" />
                   ) : (
                     <X className="h-4 w-4 mr-1" />
                   )}
-                  Cancel
+                  <span className="text-xs sm:text-sm">Cancel</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>

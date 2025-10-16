@@ -126,14 +126,17 @@ export const NFTMomentCard: React.FC<NFTMomentCardProps> = ({
     <Card
       ref={cardRef}
       className={cn(
-        "relative overflow-hidden group transition-all duration-300 cursor-pointer",
+        "relative overflow-hidden group transition-all duration-300 cursor-pointer touch-target",
         "hover:scale-105 hover:shadow-2xl hover:border-foreground",
-        "card-3d holographic",
+        "card-3d holographic mobile-card",
+        "active:scale-95 active:shadow-lg", // Mobile touch feedback
         isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
         isInLineup && "pulse-glow",
         isFlipped && "animate-spin",
         disabled && "opacity-50 cursor-not-allowed",
         compact ? "aspect-[2/3]" : "aspect-[3/4]",
+        // Mobile-specific optimizations
+        "sm:hover:scale-105 sm:hover:shadow-2xl", // Only apply hover effects on larger screens
         className
       )}
       onClick={handleAction}
@@ -191,35 +194,41 @@ export const NFTMomentCard: React.FC<NFTMomentCardProps> = ({
         {/* Scan Line Effect */}
         <div className="absolute inset-0 scan-line opacity-0 group-hover:opacity-100 transition-opacity" />
 
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1">
+        {/* Top Badges - Mobile Optimized */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           <Badge className="bg-white/20 text-white border-white/40 transition-all group-hover:bg-white/30 group-hover:scale-110 shimmer text-xs">
             {moment.sport}
           </Badge>
           <Badge className={cn(
             "transition-all group-hover:scale-110 text-xs flex items-center gap-1",
+            "px-1.5 py-0.5 sm:px-2 sm:py-1", // Smaller padding on mobile
             getRarityColor(moment.rarity)
           )}>
             {getRarityIcon(moment.rarity)}
-            {moment.rarity}
+            <span className="hidden sm:inline">{moment.rarity}</span>
+            <span className="sm:hidden">{moment.rarity.slice(0, 1)}</span>
           </Badge>
         </div>
 
-        {/* Moment ID */}
-        <div className="absolute top-3 right-3">
-          <span className="text-xs text-white/60 font-mono">
-            {formatMomentId(moment.momentId)}
-          </span>
-        </div>
+        {/* Moment ID - Hidden on mobile when action button is present */}
+        {!(onSelect || onRemove) && (
+          <div className="absolute top-2 right-2">
+            <span className="text-xs text-white/60 font-mono">
+              {formatMomentId(moment.momentId)}
+            </span>
+          </div>
+        )}
 
-        {/* Action Button */}
+        {/* Action Button - Mobile Optimized */}
         {(onSelect || onRemove) && (
           <Button
             size="icon"
             variant={isInLineup ? "destructive" : "default"}
             className={cn(
-              "absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300",
-              "hover:scale-110",
+              "absolute top-2 right-2 transition-all duration-300 touch-target",
+              "opacity-90 sm:opacity-0 sm:group-hover:opacity-100", // Always visible on mobile
+              "hover:scale-110 active:scale-95", // Touch feedback
+              "h-8 w-8 sm:h-10 sm:w-10", // Smaller on mobile for space
               isInLineup ? "hover:rotate-90" : "hover:rotate-12"
             )}
             onClick={(e) => {
@@ -228,14 +237,14 @@ export const NFTMomentCard: React.FC<NFTMomentCardProps> = ({
             }}
             disabled={disabled}
           >
-            {isInLineup ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {isInLineup ? <X className="h-3 w-3 sm:h-4 sm:w-4" /> : <Plus className="h-3 w-3 sm:h-4 sm:w-4" />}
           </Button>
         )}
 
-        {/* Player Information */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+        {/* Player Information - Mobile Optimized */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
           <div className="flex items-center justify-between mb-2">
-            <Badge className="bg-white/20 text-white border-white/40 transition-all group-hover:bg-white/30">
+            <Badge className="bg-white/20 text-white border-white/40 transition-all group-hover:bg-white/30 text-xs">
               {moment.position}
             </Badge>
             {moment.serialNumber && (
@@ -246,27 +255,27 @@ export const NFTMomentCard: React.FC<NFTMomentCardProps> = ({
           </div>
 
           <div className={cn(
-            "font-bold mb-1 transition-transform group-hover:translate-x-1",
-            compact ? "text-lg" : "text-xl"
+            "font-bold mb-1 transition-transform group-hover:translate-x-1 leading-tight",
+            compact ? "text-sm sm:text-lg" : "text-base sm:text-xl"
           )}>
             {moment.playerName}
           </div>
           
-          <div className="text-sm text-white/80 mb-3">
+          <div className="text-xs sm:text-sm text-white/80 mb-2 sm:mb-3">
             {moment.team}
           </div>
 
-          {/* Player Stats */}
+          {/* Player Stats - Mobile Optimized */}
           {showStats && playerStats && !compact && (
-            <div className="grid grid-cols-3 gap-2 text-xs mb-3">
+            <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs mb-2 sm:mb-3">
               {Object.entries(playerStats).map(([stat, value], index) => (
                 <div
                   key={stat}
-                  className="transition-all group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                  className="transition-all group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] text-center"
                   style={{ transitionDelay: `${index * 75}ms` }}
                 >
-                  <div className="text-white/60">{stat}</div>
-                  <div className="font-bold">{value}</div>
+                  <div className="text-white/60 text-xs">{stat}</div>
+                  <div className="font-bold text-xs sm:text-sm">{value}</div>
                 </div>
               ))}
             </div>
@@ -277,11 +286,12 @@ export const NFTMomentCard: React.FC<NFTMomentCardProps> = ({
             {moment.collectionName}
           </div>
 
-          {/* Action Button (Bottom) */}
+          {/* Action Button (Bottom) - Mobile Optimized */}
           {!compact && (onSelect || onRemove) && (
             <Button
               className={cn(
-                "w-full transition-all hover:scale-105 pulse-glow relative overflow-hidden group/btn text-xs",
+                "w-full transition-all hover:scale-105 active:scale-95 pulse-glow relative overflow-hidden group/btn",
+                "text-xs sm:text-sm py-1.5 sm:py-2 touch-target",
                 isInLineup ? "bg-destructive hover:bg-destructive/90" : ""
               )}
               size="sm"
@@ -294,13 +304,15 @@ export const NFTMomentCard: React.FC<NFTMomentCardProps> = ({
               <span className="relative z-10 flex items-center justify-center">
                 {isInLineup ? (
                   <>
-                    <X className="h-3 w-3 mr-2 transition-transform group-hover/btn:rotate-90" />
-                    Remove from Lineup
+                    <X className="h-3 w-3 mr-1 sm:mr-2 transition-transform group-hover/btn:rotate-90" />
+                    <span className="hidden sm:inline">Remove from Lineup</span>
+                    <span className="sm:hidden">Remove</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="h-3 w-3 mr-2 transition-transform group-hover/btn:rotate-90" />
-                    Add to Lineup
+                    <Plus className="h-3 w-3 mr-1 sm:mr-2 transition-transform group-hover/btn:rotate-90" />
+                    <span className="hidden sm:inline">Add to Lineup</span>
+                    <span className="sm:hidden">Add</span>
                   </>
                 )}
               </span>

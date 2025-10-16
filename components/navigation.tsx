@@ -11,17 +11,14 @@ import { useAuth } from "@/contexts/auth-context"
 import { usePremium } from "@/hooks/use-premium"
 import { Badge } from "@/components/ui/badge"
 
-const navItems = [
-  { href: "/", label: "HOME" },
+const dashboardItems = [
   { href: "/team", label: "MY TEAM" },
   { href: "/leaderboard", label: "LEADERBOARD" },
   { href: "/results", label: "RESULTS" },
   { href: "/marketplace", label: "MARKETPLACE" },
   { href: "/treasury", label: "TREASURY" },
   { href: "/premium", label: "PREMIUM" },
-  { href: "/sponsorship", label: "SPONSORS" },
   { href: "/profile", label: "PROFILE" },
-  { href: "/rules", label: "RULES" },
 ]
 
 export function Navigation() {
@@ -40,9 +37,9 @@ export function Navigation() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            {navItems.map((item) => (
+          {/* Desktop Navigation - Dashboard Items */}
+          <div className="hidden lg:flex items-center gap-6">
+            {dashboardItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

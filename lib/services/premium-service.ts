@@ -94,7 +94,9 @@ class PremiumService {
       existingAccess.push(access);
     }
 
-    localStorage.setItem(this.PREMIUM_ACCESS_KEY, JSON.stringify(existingAccess));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(this.PREMIUM_ACCESS_KEY, JSON.stringify(existingAccess));
+    }
     return access;
   }
 
@@ -215,7 +217,9 @@ class PremiumService {
     const allLineups = this.getAllPremiumLineups();
     allLineups.push({ ...newLineup, userAddress });
     
-    localStorage.setItem(this.PREMIUM_LINEUPS_KEY, JSON.stringify(allLineups));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(this.PREMIUM_LINEUPS_KEY, JSON.stringify(allLineups));
+    }
     return id;
   }
 
@@ -234,7 +238,9 @@ class PremiumService {
 
     if (index !== -1) {
       allLineups[index] = { ...allLineups[index], ...updates };
-      localStorage.setItem(this.PREMIUM_LINEUPS_KEY, JSON.stringify(allLineups));
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.PREMIUM_LINEUPS_KEY, JSON.stringify(allLineups));
+      }
     }
   }
 
@@ -244,12 +250,15 @@ class PremiumService {
       !(lineup.id === lineupId && lineup.userAddress === userAddress)
     );
     
-    localStorage.setItem(this.PREMIUM_LINEUPS_KEY, JSON.stringify(filtered));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(this.PREMIUM_LINEUPS_KEY, JSON.stringify(filtered));
+    }
   }
 
   // Helper methods
   private getPremiumAccess(): PremiumAccess[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const stored = localStorage.getItem(this.PREMIUM_ACCESS_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -260,6 +269,7 @@ class PremiumService {
 
   private getAllPremiumLineups(): (PremiumLineup & { userAddress: string })[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const stored = localStorage.getItem(this.PREMIUM_LINEUPS_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -343,6 +353,7 @@ class PremiumService {
 
   // Clear all premium data (for development/testing)
   async clearAllPremiumData(): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
     localStorage.removeItem(this.PREMIUM_ACCESS_KEY);
     localStorage.removeItem(this.PREMIUM_LINEUPS_KEY);
   }

@@ -357,6 +357,145 @@ export class OptimizedQueries {
     return !error;
   }
 
+  // Advanced query optimizations
+  async getPopularNFTs(sport?: 'NBA' | 'NFL', limit: number = 20): Promise<any[]> {
+    let query = supabase
+      .from('marketplace_listings')
+      .select(`
+        moment_id,
+        count(*) as listing_count,
+        avg(price) as avg_price,
+        nfts (
+          player_name,
+          team,
+          sport,
+          rarity,
+          metadata
+        )
+      `)
+      .eq('status', 'sold');
+
+    if (sport) {
+      query = query.eq('nfts.sport', sport);
+    }
+
+    query = query
+      .group('moment_id, nfts.player_name, nfts.team, nfts.sport, nfts.rarity, nfts.metadata')
+      .order('listing_count', { ascending: false })
+      .limit(limit);
+
+    const { data, error } = await query;
+    return error ? [] : data;
+  }
+
+  async getMarketplaceTrends(days: number = 7): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('marketplace_listings')
+      .select(`
+        created_at::date as date,
+        count(*) as listings_count,
+        avg(price) as avg_price,
+        sum(price) filter (where status = 'sold') as total_volume
+      `)
+      .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+      .group('created_at::date')
+      .order('date', { ascending: false });
+
+    return error ? [] : data;
+  }
+
+  async getUserPerformanceMetrics(walletAddress: string): Promise<any | null> {
+    const { data, error } = await supabase
+      .from('user_stats')
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    return error ? null : data;
+  }
+
+  async getTopPerformingLineups(weekId: number, limit: number = 10): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('lineups')
+      .select(`
+        *,
+        users (
+          wallet_address,
+          username
+        )
+      `)
+      .eq('week_id', weekId)
+      .order('total_points', { ascending: false })
+      .limit(limit);
+
+    return error ? [] : data;
+  }
+
+  async getPlayerPerformanceTrends(playerName: string, days: number = 30): Promise<PlayerStats[]> {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const endDate = new Date().toISOString().split('T')[0];
+
+    return this.getPlayerStats(playerName, startDate, endDate);
+  }
+
+  // Batch operations with transaction support
+  async batchCreateLineups(lineups: any[]): Promise<boolean> {
+    const { error } = await supabase
+      .from('lineups')
+      .insert(lineups);
+
+    if (!error) {
+      // Invalidate related caches
+      await this.invalidateLeaderboardCache();
+      for (const lineup of lineups) {
+        await cacheService.invalidateUser(lineup.user_id);
+      }
+    }
+
+    return !error;
+  }
+
+  async batchUpdateMarketplaceListings(updates: Array<{ id: string; status: string; buyer_address?: string; sold_at?: string }>): Promise<boolean> {
+    const { error } = await supabase
+      .from('marketplace_listings')
+      .upsert(updates, { onConflict: 'id' });
+
+    if (!error) {
+      await this.invalidateMarketplaceCache();
+    }
+
+    return !error;
+  }
+
+  // Connection pooling and query optimization
+  async executeOptimizedQuery<T>(
+    query: string,
+    params: any[] = [],
+    useReadReplica: boolean = false
+  ): Promise<T[]> {
+    try {
+      // Use read replica for read-only queries if available
+      const client = useReadReplica && process.env.SUPABASE_READ_REPLICA_URL 
+        ? supabase 
+        : supabase;
+
+      const { data, error } = await client.rpc('execute_query', {
+        query_text: query,
+        query_params: params
+      });
+
+      if (error) {
+        console.error('Optimized query error:', error);
+        return [];
+      }
+
+      return data as T[];
+    } catch (error) {
+      console.error('Query execution error:', error);
+      return [];
+    }
+  }
+
   // Cache invalidation helpers
   async invalidateUserCache(walletAddress: string): Promise<void> {
     await cacheService.invalidateUser(walletAddress);
@@ -369,6 +508,21 @@ export class OptimizedQueries {
 
   async invalidateLeaderboardCache(): Promise<void> {
     await cacheService.invalidateLeaderboards();
+  }
+
+  // Database health and performance monitoring
+  async getDatabaseStats(): Promise<any> {
+    const { data, error } = await supabase
+      .rpc('get_database_stats');
+
+    return error ? null : data;
+  }
+
+  async getSlowQueries(limit: number = 10): Promise<any[]> {
+    const { data, error } = await supabase
+      .rpc('get_slow_queries', { query_limit: limit });
+
+    return error ? [] : data;
   }
 }
 

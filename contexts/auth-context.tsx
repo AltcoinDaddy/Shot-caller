@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { fcl, isDapperWallet, isFlowWallet, getWalletServiceInfo } from '@/lib/flow-config';
 import { sessionStorage, validateFlowAddress } from '@/lib/session-storage';
 import { verifyWalletAddress, verifyGameplayEligibility } from '@/lib/wallet-verification';
+import { handleError, ErrorType } from '@/lib/utils/error-handling';
 
 interface User {
   addr: string | null;
@@ -167,58 +168,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (): Promise<void> => {
-    try {
-      setIsLoading(true);
-      await fcl.authenticate();
-      
-      // Wait for authentication to complete and get user info
-      const currentUser = await fcl.currentUser.snapshot();
-      if (currentUser.loggedIn && currentUser.addr) {
-        // Verify the wallet address
-        const verification = await verifyWalletAddress(currentUser.addr);
-        if (!verification.isValid) {
-          throw new Error(verification.error || 'Wallet verification failed');
-        }
+    return handleError(
+      async () => {
+        setIsLoading(true);
+        await fcl.authenticate();
         
-        // Save session and check eligibility
-        sessionStorage.saveSession(currentUser.addr, currentUser.services);
-        await checkEligibility(currentUser.addr);
+        // Wait for authentication to complete and get user info
+        const currentUser = await fcl.currentUser.snapshot();
+        if (currentUser.loggedIn && currentUser.addr) {
+          // Verify the wallet address
+          const verification = await verifyWalletAddress(currentUser.addr);
+          if (!verification.isValid) {
+            throw new Error(verification.error || 'Wallet verification failed');
+          }
+          
+          // Save session and check eligibility
+          sessionStorage.saveSession(currentUser.addr, currentUser.services);
+          await checkEligibility(currentUser.addr);
+        }
+      },
+      {
+        errorType: ErrorType.WALLET_CONNECTION,
+        showToast: false, // Let the wallet connector handle the toast
+        fallbackFn: async () => {
+          // Clear any partial session data on failure
+          sessionStorage.clearSession();
+          setIsLoading(false);
+          throw new Error('Authentication failed');
+        }
       }
-    } catch (error) {
-      console.error('Authentication failed:', error);
-      // Clear any partial session data
-      sessionStorage.clearSession();
-      throw error;
-    } finally {
+    ).finally(() => {
       setIsLoading(false);
-    }
+    });
   };
 
   const logout = async (): Promise<void> => {
-    try {
-      setIsLoading(true);
-      await fcl.unauthenticate();
-      
-      // Clear session storage
-      sessionStorage.clearSession();
-      
-      // Clear user data and eligibility
-      setUser({
-        addr: null,
-        cid: null,
-        loggedIn: false,
-      });
-      setIsEligible(false);
-      setEligibilityReason(undefined);
-      setCollections([]);
-      setWalletType(null);
-      setWalletInfo(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
-    } finally {
+    return handleError(
+      async () => {
+        setIsLoading(true);
+        await fcl.unauthenticate();
+        
+        // Clear session storage
+        sessionStorage.clearSession();
+        
+        // Clear user data and eligibility
+        setUser({
+          addr: null,
+          cid: null,
+          loggedIn: false,
+        });
+        setIsEligible(false);
+        setEligibilityReason(undefined);
+        setCollections([]);
+        setWalletType(null);
+        setWalletInfo(null);
+      },
+      {
+        errorType: ErrorType.AUTHENTICATION,
+        showToast: false, // Let the wallet connector handle the toast
+        fallbackFn: async () => {
+          // Force clear local state even if FCL logout fails
+          sessionStorage.clearSession();
+          setUser({
+            addr: null,
+            cid: null,
+            loggedIn: false,
+          });
+          setIsEligible(false);
+          setEligibilityReason(undefined);
+          setCollections([]);
+          setWalletType(null);
+          setWalletInfo(null);
+        }
+      }
+    ).finally(() => {
       setIsLoading(false);
-    }
+    });
   };
 
   const isAuthenticated = user.loggedIn && user.addr !== null;

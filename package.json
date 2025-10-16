@@ -7,6 +7,14 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:integration": "vitest --run --config vitest.integration.config.ts",
+    "test:contracts": "flow test",
     "db:migrate": "tsx lib/database/migrate.ts migrate",
     "db:seed": "tsx lib/database/migrate.ts seed",
     "db:setup": "tsx lib/database/migrate.ts setup",
@@ -16,7 +24,16 @@
     "jobs:schedule": "tsx lib/jobs/schedule-jobs.ts",
     "cache:warmup": "tsx lib/cache/warmup-cache.ts",
     "setup:env": "tsx scripts/setup-env.ts",
-    "test:redis": "tsx scripts/test-redis.ts"
+    "test:redis": "tsx scripts/test-redis.ts",
+    "optimize": "tsx scripts/optimize-performance.ts",
+    "perf:monitor": "tsx lib/monitoring/job-monitor.ts",
+    "jobs:cleanup": "tsx -e \"import { EnhancedJobMonitor } from './lib/monitoring/job-monitor'; EnhancedJobMonitor.cleanupOldJobs(7).then(() => process.exit(0));\"",
+    "deploy:production": "./scripts/deploy-production.sh",
+    "deploy:staging": "./scripts/deploy-staging.sh",
+    "setup:production-db": "tsx scripts/setup-production-db.ts",
+    "health:check": "curl -f http://localhost:3000/api/health/production || echo 'Health check failed'",
+    "monitor:metrics": "tsx -e \"import { productionMonitor } from './lib/monitoring/production-monitor'; console.log(JSON.stringify(productionMonitor.getMetrics(), null, 2));\"",
+    "validate:env": "tsx scripts/validate-production-env.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -81,14 +98,25 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4.1.9",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
+    "jsdom": "^25.0.1",
+    "msw": "^2.6.4",
     "postcss": "^8.5",
+    "supertest": "^7.0.0",
     "tailwindcss": "^4.1.9",
     "tsx": "^4.20.6",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.8"
   }
 }

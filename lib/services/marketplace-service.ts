@@ -489,6 +489,8 @@ export class MarketplaceService {
   }
 
   private async saveTransaction(transaction: MarketplaceTransaction): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
+    
     const transactions = await this.getAllTransactions();
     transactions.push(transaction);
     localStorage.setItem(this.TRANSACTIONS_KEY, JSON.stringify(transactions, this.dateReplacer));
@@ -536,6 +538,12 @@ export class MarketplaceService {
 
   private async getAllTransactions(): Promise<MarketplaceTransaction[]> {
     try {
+      // Check if we're in a browser environment
+      if (typeof localStorage === 'undefined') {
+        // Return empty array for server-side rendering
+        return [];
+      }
+      
       const stored = localStorage.getItem(this.TRANSACTIONS_KEY);
       if (!stored) return [];
       
@@ -719,6 +727,8 @@ export class MarketplaceService {
    * Clear all marketplace data
    */
   async clearAllData(): Promise<void> {
+    if (typeof localStorage === 'undefined') return;
+    
     localStorage.removeItem(this.LISTINGS_KEY);
     localStorage.removeItem(this.TRANSACTIONS_KEY);
   }

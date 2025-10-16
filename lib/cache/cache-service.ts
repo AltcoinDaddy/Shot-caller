@@ -203,6 +203,60 @@ export class CacheService {
     });
   }
 
+  // API Response Caching
+  async getAPIResponse<T>(endpoint: string, params?: Record<string, any>): Promise<T | null> {
+    const cacheKey = params ? `${endpoint}:${JSON.stringify(params)}` : endpoint;
+    return redisCache.get<T>(cacheKey, {
+      prefix: CACHE_PREFIXES.API_RESPONSE,
+      ttl: CACHE_TTL.SHORT,
+    });
+  }
+
+  async setAPIResponse<T>(endpoint: string, data: T, params?: Record<string, any>, ttl?: number): Promise<boolean> {
+    const cacheKey = params ? `${endpoint}:${JSON.stringify(params)}` : endpoint;
+    return redisCache.set(cacheKey, data, {
+      prefix: CACHE_PREFIXES.API_RESPONSE,
+      ttl: ttl || CACHE_TTL.SHORT,
+    });
+  }
+
+  async invalidateAPIResponse(endpoint: string, params?: Record<string, any>): Promise<boolean> {
+    const cacheKey = params ? `${endpoint}:${JSON.stringify(params)}` : endpoint;
+    return redisCache.del(cacheKey, {
+      prefix: CACHE_PREFIXES.API_RESPONSE,
+    });
+  }
+
+  // Sports Data Caching
+  async getSportsData<T>(sport: 'NBA' | 'NFL', date: string, dataType: string): Promise<T | null> {
+    return redisCache.get<T>(`${sport}:${date}:${dataType}`, {
+      prefix: CACHE_PREFIXES.SPORTS_DATA,
+      ttl: CACHE_TTL.VERY_LONG,
+    });
+  }
+
+  async setSportsData<T>(sport: 'NBA' | 'NFL', date: string, dataType: string, data: T): Promise<boolean> {
+    return redisCache.set(`${sport}:${date}:${dataType}`, data, {
+      prefix: CACHE_PREFIXES.SPORTS_DATA,
+      ttl: CACHE_TTL.VERY_LONG,
+    });
+  }
+
+  // Flow Blockchain Data Caching
+  async getBlockchainData<T>(address: string, dataType: string): Promise<T | null> {
+    return redisCache.get<T>(`${address}:${dataType}`, {
+      prefix: CACHE_PREFIXES.BLOCKCHAIN,
+      ttl: CACHE_TTL.MEDIUM,
+    });
+  }
+
+  async setBlockchainData<T>(address: string, dataType: string, data: T): Promise<boolean> {
+    return redisCache.set(`${address}:${dataType}`, data, {
+      prefix: CACHE_PREFIXES.BLOCKCHAIN,
+      ttl: CACHE_TTL.MEDIUM,
+    });
+  }
+
   // Generic cache methods
   async warmupCache(): Promise<void> {
     try {

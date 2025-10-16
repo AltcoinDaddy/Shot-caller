@@ -125,6 +125,7 @@ export class BoosterService {
    */
   private loadUserBoosters(userAddress: string): Booster[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const stored = localStorage.getItem(`boosters_${userAddress}`);
       if (!stored) return [];
 
@@ -146,6 +147,7 @@ export class BoosterService {
    */
   private saveUserBoosters(userAddress: string, boosters: Booster[]): void {
     try {
+      if (typeof localStorage === 'undefined') return;
       const purchasedBoosters = boosters.filter(b => b.sourceType !== 'disney_pinnacle_nft');
       localStorage.setItem(`boosters_${userAddress}`, JSON.stringify(purchasedBoosters));
     } catch (error) {

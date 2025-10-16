@@ -135,58 +135,59 @@ export default function TreasuryPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="mb-8 flex items-center justify-between">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-bold mb-2">Treasury & Tournaments</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-2xl sm:text-4xl font-bold mb-2 mobile-heading">Treasury & Tournaments</h1>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                         Enter tournaments, purchase boosters, and manage your season pass
                     </p>
                 </div>
                 <Button 
                     variant="outline" 
                     onClick={() => setIsAdmin(true)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto touch-target"
+                    size="sm"
                 >
                     <Shield className="h-4 w-4" />
-                    Admin View
+                    <span className="text-sm">Admin View</span>
                 </Button>
             </div>
 
-            {/* Treasury Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card>
+            {/* Treasury Overview - Mobile Optimized */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8 mobile-grid">
+                <Card className="mobile-card">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Treasury</CardTitle>
-                        <Coins className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-xs sm:text-sm font-medium">Total Treasury</CardTitle>
+                        <Coins className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{treasuryStats.totalBalance.toLocaleString()} FLOW</div>
+                        <div className="text-lg sm:text-2xl font-bold">{treasuryStats.totalBalance.toLocaleString()} FLOW</div>
                         <p className="text-xs text-muted-foreground">
                             Platform treasury and reward pools
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="mobile-card">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Weekly Rewards</CardTitle>
-                        <Trophy className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-xs sm:text-sm font-medium">Weekly Rewards</CardTitle>
+                        <Trophy className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{treasuryStats.weeklyDistributed.toLocaleString()} FLOW</div>
+                        <div className="text-lg sm:text-2xl font-bold">{treasuryStats.weeklyDistributed.toLocaleString()} FLOW</div>
                         <p className="text-xs text-muted-foreground">
                             Distributed this week
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="mobile-card sm:col-span-2 md:col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Players</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-xs sm:text-sm font-medium">Active Players</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{treasuryStats.totalParticipants.toLocaleString()}</div>
+                        <div className="text-lg sm:text-2xl font-bold">{treasuryStats.totalParticipants.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
                             Competing this week
                         </p>
@@ -195,11 +196,23 @@ export default function TreasuryPage() {
             </div>
 
             <Tabs defaultValue="tournaments" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="tournaments">Tournaments</TabsTrigger>
-                    <TabsTrigger value="sponsored">Sponsored</TabsTrigger>
-                    <TabsTrigger value="boosters">Booster Shop</TabsTrigger>
-                    <TabsTrigger value="season-pass">Season Pass</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+                    <TabsTrigger value="tournaments" className="text-xs sm:text-sm py-2 sm:py-3">
+                        <span className="hidden sm:inline">Tournaments</span>
+                        <span className="sm:hidden">Contests</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="sponsored" className="text-xs sm:text-sm py-2 sm:py-3">
+                        <span className="hidden sm:inline">Sponsored</span>
+                        <span className="sm:hidden">Sponsors</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="boosters" className="text-xs sm:text-sm py-2 sm:py-3">
+                        <span className="hidden sm:inline">Booster Shop</span>
+                        <span className="sm:hidden">Boosters</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="season-pass" className="text-xs sm:text-sm py-2 sm:py-3">
+                        <span className="hidden sm:inline">Season Pass</span>
+                        <span className="sm:hidden">Premium</span>
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="tournaments" className="space-y-6">

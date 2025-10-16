@@ -162,9 +162,47 @@ export const getOptimizedImageUrl = (
   quality: number = 85
 ): string => {
   // If using a CDN like Cloudinary, Imgix, etc., you can add transformation parameters
-  // For now, return the original URL
-  // Example for Cloudinary:
-  // return originalUrl.replace('/upload/', `/upload/w_${width},h_${height},q_${quality},f_auto/`);
+  // For now, return the original URL with Next.js optimization
+  if (!originalUrl) return originalUrl;
+  
+  // Add Next.js image optimization parameters
+  const url = new URL(originalUrl, window.location.origin);
+  if (width) url.searchParams.set('w', width.toString());
+  if (height) url.searchParams.set('h', height.toString());
+  url.searchParams.set('q', quality.toString());
+  
+  return url.toString();
+};
+
+// WebP support detection
+export const supportsWebP = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+};
+
+// AVIF support detection
+export const supportsAVIF = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  return canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0;
+};
+
+// Get optimal image format
+export const getOptimalImageFormat = (originalUrl: string): string => {
+  if (!originalUrl) return originalUrl;
+  
+  if (supportsAVIF()) {
+    return originalUrl.replace(/\.(jpg|jpeg|png)$/i, '.avif');
+  } else if (supportsWebP()) {
+    return originalUrl.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+  }
   
   return originalUrl;
 };

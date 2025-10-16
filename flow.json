@@ -118,11 +118,23 @@
 				"type": "file",
 				"location": "emulator-account.pkey"
 			}
+		},
+		"test-account": {
+			"address": "8af82e4a2496860b",
+			"key": {
+				"type": "file",
+				"location": "test-account.pkey"
+			}
 		}
 	},
 	"deployments": {
 		"emulator": {
 			"emulator-account": [
+				"ShotCaller"
+			]
+		},
+		"testnet": {
+			"test-account": [
 				"ShotCaller"
 			]
 		}

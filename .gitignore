@@ -114,3 +114,4 @@ flow-typed/
 emulator-account.pkey
 imports
 .env
+test-account.pkey

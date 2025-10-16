@@ -12,6 +12,11 @@ class RedisCache {
   private readonly defaultTTL = 3600; // 1 hour default
 
   async connect(): Promise<void> {
+    // Skip Redis connection during build time
+    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === undefined) {
+      return;
+    }
+
     if (this.isConnected && this.client) {
       return;
     }
@@ -204,6 +209,9 @@ export const CACHE_PREFIXES = {
   TREASURY: 'treasury',
   BOOSTER: 'booster',
   PREMIUM: 'premium',
+  API_RESPONSE: 'api_response',
+  SPORTS_DATA: 'sports_data',
+  BLOCKCHAIN: 'blockchain',
 } as const;
 
 // Cache TTL values (in seconds)

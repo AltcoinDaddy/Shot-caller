@@ -31,8 +31,21 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
     try {
       setError(null);
       await login();
-    } catch (err) {
-      setError('Failed to connect wallet. Please try again.');
+    } catch (err: any) {
+      // Enhanced error handling with specific messages
+      let errorMessage = 'Failed to connect wallet. Please try again.';
+      
+      if (err.message?.includes('user rejected')) {
+        errorMessage = 'Wallet connection was cancelled. Please try again when ready.';
+      } else if (err.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (err.message?.includes('timeout')) {
+        errorMessage = 'Connection timed out. Please try again.';
+      } else if (err.message?.includes('not found')) {
+        errorMessage = 'Wallet not found. Please make sure your wallet is installed and unlocked.';
+      }
+      
+      setError(errorMessage);
       console.error('Wallet connection error:', err);
     }
   };
@@ -41,8 +54,15 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
     try {
       setError(null);
       await logout();
-    } catch (err) {
-      setError('Failed to disconnect wallet. Please try again.');
+    } catch (err: any) {
+      // Enhanced error handling for disconnection
+      let errorMessage = 'Failed to disconnect wallet. Please try again.';
+      
+      if (err.message?.includes('network')) {
+        errorMessage = 'Network error during disconnection. Your session may still be cleared locally.';
+      }
+      
+      setError(errorMessage);
       console.error('Wallet disconnection error:', err);
     }
   };
@@ -102,10 +122,11 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
           <Button 
             onClick={handleConnect}
             disabled={isLoading}
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center gap-2 touch-target"
+            size="default"
           >
             <Wallet className="h-4 w-4" />
-            Connect Wallet
+            <span className="text-sm sm:text-base">Connect Wallet</span>
           </Button>
           
           {showWalletSelection && (
@@ -145,37 +166,40 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
         </Alert>
       )}
       
-      <Card>
+      <Card className="mobile-card">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm">
             <User className="h-4 w-4" />
-            Wallet Connected
+            <span>Wallet Connected</span>
             {connectedWallet?.isPrimary && (
               <Badge variant="default" className="text-xs ml-1">
-                Recommended
+                <span className="hidden sm:inline">Recommended</span>
+                <span className="sm:hidden">✓</span>
               </Badge>
             )}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {formatAddress(user.addr || '')}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <Badge variant="secondary" className="text-xs w-fit">
                 {connectedWallet ? (
                   <>
                     <span className="mr-1">{connectedWallet.icon}</span>
-                    {connectedWallet.name}
+                    <span className="hidden sm:inline">{connectedWallet.name}</span>
+                    <span className="sm:hidden">{connectedWallet.name.split(' ')[0]}</span>
                   </>
                 ) : (
                   'Unknown Wallet'
                 )}
               </Badge>
               {connectedWallet?.isPrimary && (
-                <Badge variant="outline" className="text-xs text-green-600 border-green-300">
-                  NFT Ready
+                <Badge variant="outline" className="text-xs text-green-600 border-green-300 w-fit">
+                  <span className="hidden sm:inline">NFT Ready</span>
+                  <span className="sm:hidden">NFT ✓</span>
                 </Badge>
               )}
             </div>
@@ -184,10 +208,10 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
               size="sm"
               onClick={handleDisconnect}
               disabled={isLoading}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 w-full sm:w-auto touch-target"
             >
               <LogOut className="h-3 w-3" />
-              Disconnect
+              <span className="text-xs sm:text-sm">Disconnect</span>
             </Button>
           </div>
         </CardContent>
@@ -205,8 +229,16 @@ export const WalletConnectorCompact: React.FC<{ className?: string }> = ({ class
     try {
       setError(null);
       await login();
-    } catch (err) {
-      setError('Failed to connect wallet');
+    } catch (err: any) {
+      let errorMessage = 'Failed to connect wallet';
+      
+      if (err.message?.includes('user rejected')) {
+        errorMessage = 'Connection cancelled';
+      } else if (err.message?.includes('network')) {
+        errorMessage = 'Network error';
+      }
+      
+      setError(errorMessage);
       console.error('Wallet connection error:', err);
     }
   };
@@ -215,8 +247,14 @@ export const WalletConnectorCompact: React.FC<{ className?: string }> = ({ class
     try {
       setError(null);
       await logout();
-    } catch (err) {
-      setError('Failed to disconnect wallet');
+    } catch (err: any) {
+      let errorMessage = 'Failed to disconnect';
+      
+      if (err.message?.includes('network')) {
+        errorMessage = 'Network error';
+      }
+      
+      setError(errorMessage);
       console.error('Wallet disconnection error:', err);
     }
   };

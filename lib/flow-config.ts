@@ -9,6 +9,7 @@ const FLOW_CONFIG = {
   "0xNonFungibleToken": "0x631e88ae7f1d7c20", // NFT standard on testnet
   "0xTopShot": "0x877931736ee77cff", // NBA Top Shot on testnet
   "0xAllDay": "0x4dfd62c88d1b6462", // NFL All Day on testnet
+  "0xShotCaller": "0x8af82e4a2496860b", // ShotCaller contract address on testnet
 };
 
 // Wallet service configurations
@@ -35,40 +36,50 @@ export const WALLET_SERVICES = {
 
 // Initialize Flow Client Library with multi-wallet support
 export const initFlow = () => {
-  fcl.config(FLOW_CONFIG);
-  configureMultiWallet();
+  // Only initialize on client side
+  if (typeof window !== 'undefined') {
+    fcl.config(FLOW_CONFIG);
+    configureMultiWallet();
+  }
 };
 
 // Configure wallet discovery to include multiple wallet options
 export const configureMultiWallet = () => {
-  fcl.config({
-    "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
-    "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/testnet/authn",
-    // Include multiple wallet services for user choice
-    "discovery.authn.include": [
-      WALLET_SERVICES.DAPPER.id,     // Dapper Wallet (primary for NBA Top Shot/NFL All Day)
-      WALLET_SERVICES.FLOW_WALLET.id, // Flow Wallet (official Flow wallet)
-      WALLET_SERVICES.BLOCTO.id,     // Blocto (popular multi-chain wallet)
-    ],
-  });
+  // Only configure on client side
+  if (typeof window !== 'undefined') {
+    fcl.config({
+      "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
+      "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/testnet/authn",
+      // Include multiple wallet services for user choice
+      "discovery.authn.include": [
+        WALLET_SERVICES.DAPPER.id,     // Dapper Wallet (primary for NBA Top Shot/NFL All Day)
+        WALLET_SERVICES.FLOW_WALLET.id, // Flow Wallet (official Flow wallet)
+        WALLET_SERVICES.BLOCTO.id,     // Blocto (popular multi-chain wallet)
+      ],
+    });
+  }
 };
 
 // Dapper Wallet specific configuration (for NBA Top Shot/NFL All Day focus)
 export const configureDapperWallet = () => {
-  fcl.config({
-    "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
-    "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/testnet/authn",
-    "discovery.authn.include": [WALLET_SERVICES.DAPPER.id], // Only Dapper Wallet
-  });
+  if (typeof window !== 'undefined') {
+    fcl.config({
+      "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
+      "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/testnet/authn",
+      "discovery.authn.include": [WALLET_SERVICES.DAPPER.id], // Only Dapper Wallet
+    });
+  }
 };
 
 // Flow Wallet specific configuration
 export const configureFlowWallet = () => {
-  fcl.config({
-    "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
-    "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/testnet/authn",
-    "discovery.authn.include": [WALLET_SERVICES.FLOW_WALLET.id], // Only Flow Wallet
-  });
+  if (typeof window !== 'undefined') {
+    fcl.config({
+      "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
+      "discovery.authn.endpoint": "https://fcl-discovery.onflow.org/api/testnet/authn",
+      "discovery.authn.include": [WALLET_SERVICES.FLOW_WALLET.id], // Only Flow Wallet
+    });
+  }
 };
 
 // Get wallet service info by service ID

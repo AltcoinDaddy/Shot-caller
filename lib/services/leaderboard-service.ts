@@ -370,6 +370,7 @@ export class LeaderboardService {
   // Storage helpers
   private getStoredLeaderboard(): LeaderboardEntry[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const stored = localStorage.getItem(this.LEADERBOARD_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -379,11 +380,13 @@ export class LeaderboardService {
   }
 
   private saveLeaderboard(entries: LeaderboardEntry[]): void {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(this.LEADERBOARD_KEY, JSON.stringify(entries));
   }
 
   private getStoredPrizePools(): PrizePool[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const stored = localStorage.getItem(this.PRIZE_POOLS_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -393,11 +396,13 @@ export class LeaderboardService {
   }
 
   private savePrizePools(pools: PrizePool[]): void {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(this.PRIZE_POOLS_KEY, JSON.stringify(pools));
   }
 
   private getStoredRankingHistory(): UserRankingHistory[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
       const stored = localStorage.getItem(this.RANKING_HISTORY_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -407,6 +412,7 @@ export class LeaderboardService {
   }
 
   private saveRankingHistory(history: UserRankingHistory[]): void {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(this.RANKING_HISTORY_KEY, JSON.stringify(history));
   }
 }

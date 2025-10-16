@@ -39,14 +39,14 @@ type PlayerStats = Database['public']['Tables']['player_stats']['Row']
 type PlayerStatsInsert = Database['public']['Tables']['player_stats']['Insert']
 
 // Error types
-export class DatabaseError extends Error {
+class DatabaseError extends Error {
   constructor(message: string, public code?: string) {
     super(message)
     this.name = 'DatabaseError'
   }
 }
 
-export class ValidationError extends Error {
+class ValidationError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'ValidationError'

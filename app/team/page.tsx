@@ -190,20 +190,22 @@ export default function TeamPage() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4 holographic">BUILD YOUR TEAM</h1>
-          <p className="text-xl text-muted-foreground">
+        {/* Header - Mobile Optimized */}
+        <div className="mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4 holographic mobile-heading">
+            BUILD YOUR TEAM
+          </h1>
+          <p className="text-base sm:text-xl text-muted-foreground">
             Select up to 5 NFTs from your collection to create your fantasy lineup
           </p>
           
-          {/* Contest Info */}
+          {/* Contest Info - Mobile Optimized */}
           {activeContest && (
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
-              <div className="flex items-center justify-between">
+            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-muted/50 rounded-lg border mobile-card">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                 <div>
-                  <h3 className="font-semibold">Week {activeContest.weekId} Contest</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold text-sm sm:text-base">Week {activeContest.weekId} Contest</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Ends: {new Date(activeContest.endTime).toLocaleDateString()}
                   </p>
                   {process.env.NODE_ENV === 'development' && (
@@ -212,9 +214,9 @@ export default function TeamPage() {
                     </p>
                   )}
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground">Prize Pool</div>
-                  <div className="font-bold">{activeContest.rewardPool} FLOW</div>
+                <div className="text-left sm:text-right">
+                  <div className="text-xs sm:text-sm text-muted-foreground">Prize Pool</div>
+                  <div className="font-bold text-sm sm:text-base">{activeContest.rewardPool} FLOW</div>
                   {process.env.NODE_ENV === 'development' && (
                     <div className="text-xs text-muted-foreground mt-1">
                       Participants: {activeContest.totalParticipants}
@@ -319,11 +321,11 @@ export default function TeamPage() {
           </div>
         )}
 
-        {/* Current Lineup */}
-        <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <h2 className="text-3xl font-bold tracking-tight">
+        {/* Current Lineup - Mobile Optimized */}
+        <div className="mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <h2 className="text-xl sm:text-3xl font-bold tracking-tight mobile-heading">
                 CURRENT LINEUP <span className="text-muted-foreground">({lineup.length}/5)</span>
               </h2>
               {isPremium && premiumLineups.length > 0 && (
@@ -356,33 +358,33 @@ export default function TeamPage() {
               )}
             </div>
             {lineup.length > 0 && activeContest && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 {existingLineup && (
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="gap-1 text-xs">
                     <CheckCircle className="h-3 w-3" />
                     Already Submitted
                   </Badge>
                 )}
                 <Button
-                  size="lg"
-                  className="gap-2 animate-in fade-in slide-in-from-right-4 duration-500 hover:scale-105 transition-transform pulse-glow"
+                  size="default"
+                  className="gap-2 animate-in fade-in slide-in-from-right-4 duration-500 hover:scale-105 active:scale-95 transition-transform pulse-glow w-full sm:w-auto touch-target"
                   onClick={handleSubmitLineup}
                   disabled={lineup.length === 0 || isSubmitting || !activeContest}
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Submitting...
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                      <span className="text-sm sm:text-base">Submitting...</span>
                     </>
                   ) : existingLineup ? (
                     <>
-                      <Trophy className="h-5 w-5" />
-                      Update Lineup
+                      <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Update Lineup</span>
                     </>
                   ) : (
                     <>
-                      <Trophy className="h-5 w-5 animate-pulse" />
-                      Submit Lineup
+                      <Trophy className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+                      <span className="text-sm sm:text-base">Submit Lineup</span>
                     </>
                   )}
                 </Button>
@@ -400,7 +402,7 @@ export default function TeamPage() {
               </p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 mobile-grid">
               {lineup.map((moment, index) => (
                 <NFTMomentCard
                   key={moment.momentId}
@@ -418,27 +420,30 @@ export default function TeamPage() {
           )}
         </div>
 
-        {/* Available NFTs */}
+        {/* Available NFTs - Mobile Optimized */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold tracking-tight">YOUR COLLECTION</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
+            <h2 className="text-xl sm:text-3xl font-bold tracking-tight mobile-heading">YOUR COLLECTION</h2>
             {!isLoading && (
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 {eligibleMoments.length} eligible NFTs found
               </div>
             )}
           </div>
 
-          <Tabs defaultValue="ALL" className="mb-6" onValueChange={(v) => setSelectedSport(v as "NBA" | "NFL" | "ALL")}>
-            <TabsList>
-              <TabsTrigger value="ALL" className="transition-all hover:scale-105 holographic">
-                All Sports ({eligibleMoments.length})
+          <Tabs defaultValue="ALL" className="mb-4 sm:mb-6" onValueChange={(v) => setSelectedSport(v as "NBA" | "NFL" | "ALL")}>
+            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:grid-cols-none sm:flex">
+              <TabsTrigger value="ALL" className="transition-all hover:scale-105 holographic text-xs sm:text-sm">
+                <span className="hidden sm:inline">All Sports ({eligibleMoments.length})</span>
+                <span className="sm:hidden">All ({eligibleMoments.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="NBA" className="transition-all hover:scale-105 holographic">
-                NBA Top Shot ({eligibleMoments.filter(m => m.sport === 'NBA').length})
+              <TabsTrigger value="NBA" className="transition-all hover:scale-105 holographic text-xs sm:text-sm">
+                <span className="hidden sm:inline">NBA Top Shot ({eligibleMoments.filter(m => m.sport === 'NBA').length})</span>
+                <span className="sm:hidden">NBA ({eligibleMoments.filter(m => m.sport === 'NBA').length})</span>
               </TabsTrigger>
-              <TabsTrigger value="NFL" className="transition-all hover:scale-105 holographic">
-                NFL All Day ({eligibleMoments.filter(m => m.sport === 'NFL').length})
+              <TabsTrigger value="NFL" className="transition-all hover:scale-105 holographic text-xs sm:text-sm">
+                <span className="hidden sm:inline">NFL All Day ({eligibleMoments.filter(m => m.sport === 'NFL').length})</span>
+                <span className="sm:hidden">NFL ({eligibleMoments.filter(m => m.sport === 'NFL').length})</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -480,7 +485,7 @@ export default function TeamPage() {
               )}
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 mobile-grid">
               {filteredNFTs.map((moment, index) => (
                 <NFTMomentCard
                   key={moment.momentId}

@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "name": "shotcaller-fantasy-game",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NBA_API_KEY": "@nba-api-key",
+    "NBA_API_BASE_URL": "@nba-api-base-url",
+    "NFL_API_KEY": "@nfl-api-key",
+    "NFL_API_BASE_URL": "@nfl-api-base-url",
+    "SUPABASE_URL": "@supabase-url",
+    "SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "REDIS_URL": "@redis-url",
+    "FLOW_ACCESS_API_URL": "@flow-access-api-url",
+    "FLOW_PRIVATE_KEY": "@flow-private-key",
+    "FLOW_ACCOUNT_ADDRESS": "@flow-account-address"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ],
+  "regions": ["iad1"],
+  "framework": "nextjs"
+}

@@ -1,275 +1,206 @@
-# Caching and Performance Optimization
+# ShotCaller Caching and Performance Optimization
 
-This directory contains the caching infrastructure and performance optimization tools for ShotCaller.
+This directory contains the comprehensive caching and performance optimization system for the ShotCaller fantasy sports application.
 
 ## Overview
 
-The caching system is built on Redis and provides:
-- Multi-layer caching for API responses, NFT data, and marketplace listings
-- Efficient database query optimization with proper indexing
-- Image optimization and lazy loading for NFT displays
-- Background job processing for stats updates, scoring, and reward distribution
-- Performance monitoring and metrics collection
+The caching system is built on Redis and provides multi-layer caching for:
+- API responses
+- NFT data and ownership verification
+- Marketplace listings
+- Player statistics
+- Leaderboards
+- User data
+- Sports data from external APIs
+- Flow blockchain data
+
+## Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Application   │───▶│  Cache Service  │───▶│  Redis Client   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Background Jobs │
+                       │   - Stats Sync  │
+                       │   - Cache Warm  │
+                       │   - Cleanup     │
+                       └─────────────────┘
+```
 
 ## Components
 
-### Redis Client (`redis-client.ts`)
-- Singleton Redis client with connection management
-- Automatic reconnection and error handling
-- Support for TTL, prefixes, and batch operations
-- Health monitoring
-
-### Cache Service (`cache-service.ts`)
-- High-level caching interface for different data types
-- Specific methods for NFTs, marketplace, leaderboard, users, etc.
-- Cache invalidation strategies
-- Warmup and cleanup utilities
-
-### Optimized Queries (`../database/optimized-queries.ts`)
-- Database queries that utilize proper indexing
-- Integrated caching for frequently accessed data
+### 1. Redis Client (`redis-client.ts`)
+- Connection management with automatic reconnection
+- Error handling and graceful degradation
+- Support for multiple data types and TTL
 - Batch operations for efficiency
-- Cache invalidation on data updates
+- Pattern-based cache invalidation
 
-### Performance Monitoring (`../monitoring/performance-monitor.ts`)
-- API response time tracking
-- Cache hit/miss rate monitoring
-- Database query performance metrics
-- Health status reporting
+### 2. Cache Service (`cache-service.ts`)
+- High-level caching interface
+- Type-safe cache operations
+- Automatic serialization/deserialization
+- Cache key management with prefixes
+- Specialized methods for different data types
 
-## Setup
+### 3. API Cache Middleware (`api-cache-middleware.ts`)
+- Automatic API response caching
+- Configurable TTL and cache keys
+- Support for cache invalidation
+- Request-specific cache variations
+- Cache warming utilities
 
-### Prerequisites
-- Redis server running locally or remotely
-- Environment variables configured
+### 4. Image Optimization Service (`../services/image-optimization-service.ts`)
+- CDN integration (Cloudinary, Imgix)
+- Responsive image generation
+- Format optimization (WebP, AVIF)
+- Lazy loading support
+- Performance monitoring
 
-### Environment Variables
-```bash
-REDIS_URL=redis://localhost:6379
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=your_password_if_needed
-```
+### 5. Job Monitoring (`../monitoring/job-monitor.ts`)
+- Real-time job queue monitoring
+- Performance analytics
+- Health checks and alerting
+- Automatic cleanup and maintenance
 
-### Installation
-```bash
-# Install dependencies
-pnpm install
+## Cache Prefixes and TTL
 
-# Start Redis (if running locally)
-redis-server
+| Prefix | Data Type | TTL | Description |
+|--------|-----------|-----|-------------|
+| `nft` | NFT Moments | 30 min | NFT metadata and ownership |
+| `marketplace` | Listings | 5 min | Marketplace listings and stats |
+| `player_stats` | Statistics | 24 hours | Player performance data |
+| `leaderboard` | Rankings | 10 min | Competition rankings |
+| `user` | User Data | 30 min | User profiles and stats |
+| `contest` | Contests | 10 min | Contest information |
+| `treasury` | Treasury | 5 min | Treasury status and transactions |
+| `api_response` | API Data | 5 min | Generic API response cache |
+| `sports_data` | Sports APIs | 24 hours | External sports data |
+| `blockchain` | Flow Data | 30 min | Blockchain query results |
 
-# Warmup cache
-pnpm cache:warmup
-```
-
-## Usage
+## Usage Examples
 
 ### Basic Caching
 ```typescript
 import { cacheService } from '@/lib/cache/cache-service';
 
-// Get cached data
-const nft = await cacheService.getNFT('12345');
+// Cache user NFTs
+await cacheService.setUserNFTs(walletAddress, nfts);
+const cachedNFTs = await cacheService.getUserNFTs(walletAddress);
 
-// Set cache with TTL
-await cacheService.setNFT('12345', nftData);
-
-// Invalidate cache
-await cacheService.invalidateUserNFTs(walletAddress);
+// Cache API responses
+await cacheService.setAPIResponse('leaderboard', data, { week: 1 });
+const cached = await cacheService.getAPIResponse('leaderboard', { week: 1 });
 ```
 
-### Database Queries with Caching
+### API Middleware
 ```typescript
-import { optimizedQueries } from '@/lib/database/optimized-queries';
+import { withCache, CACHE_CONFIGS } from '@/lib/cache/api-cache-middleware';
 
-// Automatically cached query
-const listings = await optimizedQueries.getMarketplaceListings({
-  sport: 'NBA',
-  rarity: 'Legendary'
-});
-
-// Cache is automatically invalidated on updates
+export const GET = withCache(CACHE_CONFIGS.leaderboard)(
+  async (req: NextRequest) => {
+    // Your API logic here
+    return NextResponse.json(data);
+  }
+);
 ```
 
-### Performance Monitoring
+### Image Optimization
 ```typescript
-import { PerformanceMonitor } from '@/lib/monitoring/performance-monitor';
+import { ImageOptimizationService, IMAGE_PRESETS } from '@/lib/services/image-optimization-service';
 
-// Record custom metrics
-PerformanceMonitor.recordMetric('nft_load_time', 150);
+// Generate optimized image URL
+const optimizedUrl = ImageOptimizationService.generateOptimizedUrl(
+  originalUrl,
+  IMAGE_PRESETS.nftCard
+);
 
-// Get performance summary
-const summary = PerformanceMonitor.getPerformanceSummary();
-
-// Check health status
-const health = PerformanceMonitor.getHealthStatus();
+// Preload critical images
+await ImageOptimizationService.preloadImages([url1, url2, url3]);
 ```
 
-## Background Jobs
+## Performance Monitoring
 
-### Job Types
-- **Stats Update**: Daily sync of NBA/NFL player statistics
-- **Scoring Calculation**: Weekly fantasy point calculations
-- **Reward Distribution**: Automated prize distribution
-- **Cache Warmup**: Preload frequently accessed data
-- **Database Cleanup**: Remove old data
+### Job Queue Metrics
+```typescript
+import { EnhancedJobMonitor } from '@/lib/monitoring/job-monitor';
 
-### Starting Workers
+// Get job metrics
+const metrics = await EnhancedJobMonitor.getJobMetrics();
+
+// Check system health
+const health = await EnhancedJobMonitor.checkJobHealth();
+
+// Get performance analytics
+const analytics = await EnhancedJobMonitor.getPerformanceAnalytics('stats', 24);
+```
+
+### Cache Performance
+```typescript
+// Test cache performance
+const writeStart = performance.now();
+await cacheService.set('test', data);
+const writeTime = performance.now() - writeStart;
+
+// Monitor cache hit rates
+const hitRate = await cacheService.getHitRate();
+```
+
+## Scripts and Commands
+
+### Development
 ```bash
-# Start all job workers
+# Start Redis (Docker)
+docker run -d -p 6379:6379 --name redis redis:alpine
+
+# Test Redis connection
+pnpm test:redis
+
+# Warm up cache
+pnpm cache:warmup
+
+# Start job workers
 pnpm jobs:start
+
+# Run performance optimization
+pnpm optimize
+```
+
+### Production
+```bash
+# Start job monitoring
+pnpm perf:monitor
+
+# Clean up old jobs
+pnpm jobs:cleanup
 
 # Schedule recurring jobs
 pnpm jobs:schedule
 ```
 
-### Job Management API
-```bash
-# Get job statistics
-GET /api/admin/jobs?action=stats
+## Configuration
 
-# Schedule manual job
-POST /api/admin/jobs
-{
-  "action": "schedule_stats_update",
-  "data": { "sport": "NBA", "date": "2024-01-15" }
-}
+### Environment Variables
+```env
+# Redis Configuration
+REDIS_URL=redis://localhost:6379
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=your_password
 
-# Retry failed jobs
-POST /api/admin/jobs
-{
-  "action": "retry_failed",
-  "queue": "stats"
-}
+# CDN Configuration (optional)
+NEXT_PUBLIC_CDN_URL=https://your-cdn.com
+
+# Performance Monitoring
+ENABLE_PERFORMANCE_MONITORING=true
 ```
 
-## Image Optimization
-
-### Optimized NFT Images
-```typescript
-import { OptimizedNFTImage, NFT_IMAGE_SIZES } from '@/components/optimized-nft-image';
-
-<OptimizedNFTImage
-  src={nft.imageUrl}
-  alt={nft.playerName}
-  sizes={NFT_IMAGE_SIZES.card}
-  quality={85}
-  priority={false}
-/>
+### Redis Configuration
+For production, consider these Redis settings:
 ```
-
-### Features
-- Lazy loading with Intersection Observer
-- Responsive image sizes
-- WebP format support
-- Blur placeholder while loading
-- Error handling with fallbacks
-
-## Cache Strategies
-
-### TTL Values
-- **SHORT** (5 minutes): Real-time data like marketplace listings
-- **MEDIUM** (30 minutes): User data and contest information
-- **LONG** (1 hour): NFT metadata and player stats
-- **VERY_LONG** (24 hours): Historical data
-
-### Cache Prefixes
-- `nft:*` - NFT metadata and ownership
-- `marketplace:*` - Marketplace listings and transactions
-- `player_stats:*` - Player performance data
-- `leaderboard:*` - Rankings and standings
-- `user:*` - User profiles and data
-- `contest:*` - Contest information
-- `treasury:*` - Treasury and financial data
-
-### Invalidation Strategies
-- **Time-based**: Automatic expiration with TTL
-- **Event-based**: Invalidate on data updates
-- **Pattern-based**: Bulk invalidation using wildcards
-- **Manual**: Admin-triggered cache clearing
-
-## Performance Optimization
-
-### Database Indexing
-- Composite indexes for common query patterns
-- Covering indexes to avoid table lookups
-- Partial indexes for filtered queries
-- Concurrent index creation to avoid downtime
-
-### Query Optimization
-- Use of database views for complex queries
-- Batch operations to reduce round trips
-- Connection pooling for efficiency
-- Query result caching
-
-### API Optimization
-- Response compression with gzip
-- Conditional requests with ETags
-- Rate limiting to prevent abuse
-- Background processing for heavy operations
-
-## Monitoring and Alerts
-
-### Metrics Tracked
-- API response times (avg, p95, p99)
-- Cache hit/miss rates by prefix
-- Database query performance
-- Job processing times and failures
-- Memory and CPU usage
-
-### Health Checks
-- Redis connectivity
-- Database responsiveness
-- Cache hit rates
-- Error rates
-- Job queue status
-
-### Admin Dashboard
-Access performance metrics at:
-- `/api/admin/performance` - Performance summary
-- `/api/admin/jobs` - Job queue status
-- Health status included in API responses
-
-## Troubleshooting
-
-### Common Issues
-
-#### Redis Connection Errors
-```bash
-# Check Redis status
-redis-cli ping
-
-# Restart Redis
-sudo systemctl restart redis
-
-# Check logs
-tail -f /var/log/redis/redis-server.log
-```
-
-#### Low Cache Hit Rates
-- Check TTL values are appropriate
-- Verify cache keys are consistent
-- Monitor cache eviction policies
-- Consider increasing Redis memory
-
-#### Slow Database Queries
-- Check index usage with EXPLAIN
-- Monitor connection pool status
-- Review query patterns
-- Consider query optimization
-
-#### Job Processing Failures
-- Check Redis connectivity
-- Review job error logs
-- Verify external API availability
-- Monitor memory usage
-
-### Performance Tuning
-
-#### Redis Configuration
-```conf
-# /etc/redis/redis.conf
 maxmemory 2gb
 maxmemory-policy allkeys-lru
 save 900 1
@@ -277,64 +208,138 @@ save 300 10
 save 60 10000
 ```
 
-#### Database Tuning
-```sql
--- Monitor slow queries
-SELECT query, mean_time, calls 
-FROM pg_stat_statements 
-ORDER BY mean_time DESC 
-LIMIT 10;
+## Best Practices
 
--- Check index usage
-SELECT schemaname, tablename, attname, n_distinct, correlation 
-FROM pg_stats 
-WHERE tablename = 'your_table';
-```
+### 1. Cache Key Design
+- Use consistent naming conventions
+- Include version numbers for breaking changes
+- Use hierarchical keys for easy invalidation
+- Avoid very long keys (>250 characters)
 
-## Development
+### 2. TTL Strategy
+- Short TTL for frequently changing data (5-10 minutes)
+- Medium TTL for semi-static data (30 minutes - 1 hour)
+- Long TTL for rarely changing data (24 hours)
+- Consider cache warming for critical data
 
-### Testing Cache
-```typescript
-// Test cache functionality
-import { cacheService } from '@/lib/cache/cache-service';
+### 3. Error Handling
+- Always handle cache failures gracefully
+- Implement fallback to database/API
+- Log cache errors for monitoring
+- Use circuit breaker pattern for external services
 
-// Clear cache for testing
-await cacheService.clearAllCache();
+### 4. Performance Optimization
+- Use batch operations when possible
+- Implement cache warming for critical paths
+- Monitor cache hit rates and adjust TTL
+- Use compression for large cached objects
 
-// Test cache operations
-const testData = { id: '123', name: 'Test' };
-await cacheService.set('test:123', testData);
-const cached = await cacheService.get('test:123');
-```
+### 5. Memory Management
+- Set appropriate maxmemory limits
+- Use LRU eviction policy
+- Monitor memory usage
+- Clean up expired keys regularly
 
-### Local Development
+## Monitoring and Alerting
+
+### Health Checks
+The system includes comprehensive health monitoring:
+- Cache connectivity and performance
+- Job queue health and throughput
+- Database query performance
+- System resource usage
+
+### Metrics Available
+- Cache hit/miss rates
+- Average response times
+- Job processing times
+- Error rates and failure patterns
+- Memory and CPU usage
+
+### Alerting
+Configure alerts for:
+- Cache connection failures
+- High error rates (>10%)
+- Slow job processing (>5 minutes)
+- High memory usage (>80%)
+- Queue backlogs (>100 jobs)
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Redis Connection Refused**
+   ```bash
+   # Check if Redis is running
+   redis-cli ping
+   
+   # Start Redis
+   redis-server
+   ```
+
+2. **High Memory Usage**
+   ```bash
+   # Check Redis memory usage
+   redis-cli info memory
+   
+   # Clear all cache
+   pnpm cache:clear
+   ```
+
+3. **Slow Cache Performance**
+   ```bash
+   # Check Redis latency
+   redis-cli --latency
+   
+   # Monitor slow commands
+   redis-cli monitor
+   ```
+
+4. **Job Queue Backlog**
+   ```bash
+   # Check job status
+   curl http://localhost:3000/api/admin/performance?metric=jobs
+   
+   # Retry failed jobs
+   curl -X POST http://localhost:3000/api/admin/performance \
+     -d '{"action": "retry_failed", "queue": "stats"}'
+   ```
+
+## Performance Benchmarks
+
+### Expected Performance
+- Cache read latency: <10ms
+- Cache write latency: <20ms
+- Job processing: <30 seconds
+- API response time: <200ms (cached)
+- Image optimization: <500ms
+
+### Load Testing
+Use the performance optimization script to benchmark your setup:
 ```bash
-# Start Redis locally
-docker run -d -p 6379:6379 redis:alpine
-
-# Or use Redis CLI
-redis-server --daemonize yes
-
-# Monitor Redis
-redis-cli monitor
+pnpm optimize
 ```
 
-## Production Deployment
+This will test all components and provide a comprehensive performance report.
 
-### Redis Setup
-- Use Redis Cluster for high availability
-- Configure persistence (RDB + AOF)
-- Set up monitoring and alerting
-- Implement backup strategies
+## Future Enhancements
 
-### Scaling Considerations
-- Horizontal scaling with Redis Cluster
-- Read replicas for read-heavy workloads
-- Connection pooling and load balancing
-- Memory optimization and monitoring
+1. **Multi-Region Caching**
+   - Redis Cluster support
+   - Geographic cache distribution
+   - Cross-region replication
 
-### Security
-- Enable Redis AUTH
-- Use TLS for connections
-- Network isolation and firewalls
-- Regular security updates
+2. **Advanced Analytics**
+   - Machine learning for cache prediction
+   - Automatic TTL optimization
+   - Usage pattern analysis
+
+3. **Enhanced Monitoring**
+   - Real-time dashboards
+   - Predictive alerting
+   - Performance regression detection
+
+4. **Edge Caching**
+   - CDN integration
+   - Edge function caching
+   - Global cache invalidation
