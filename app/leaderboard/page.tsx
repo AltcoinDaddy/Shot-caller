@@ -9,6 +9,7 @@ import { Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Target } fro
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useLeaderboard, usePrizePool } from "@/hooks/use-leaderboard"
 import { usePremium } from "@/hooks/use-premium"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 import { PrizePoolDisplay } from "@/components/prize-pool-display"
 import { PremiumBadge } from "@/components/premium-badge"
 import { LeaderboardTimeframe } from "@/lib/types/leaderboard"
@@ -41,6 +42,9 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+        
         {/* Header - Mobile Optimized */}
         <div className="mb-8 sm:mb-12">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4">

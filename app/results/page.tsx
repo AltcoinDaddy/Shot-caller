@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { TrendingUp, TrendingDown, Calendar, BarChart3, Users, Target } from "lucide-react"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 
 // Mock weekly results data
 const weeklyData = [
@@ -88,6 +89,9 @@ export default function ResultsPage() {
   return (
     <div className="min-h-screen py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+        
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">RESULTS</h1>

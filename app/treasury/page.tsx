@@ -10,6 +10,7 @@ import { Coins, Trophy, Zap, Star, Users, Timer, Shield } from "lucide-react"
 import { BoosterInventory } from "@/components/booster-inventory"
 import { SponsoredTournamentCard } from "@/components/sponsored-tournament-card"
 import { TreasuryAdminDashboard } from "@/components/treasury-admin-dashboard"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 
 // Mock treasury data
 const treasuryStats = {
@@ -128,6 +129,7 @@ export default function TreasuryPage() {
     if (isAdmin) {
         return (
             <div className="container mx-auto px-4 py-8">
+                <BreadcrumbNavigation className="mb-4 sm:mb-6" />
                 <TreasuryAdminDashboard />
             </div>
         )
@@ -135,6 +137,9 @@ export default function TreasuryPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
+            {/* Breadcrumb Navigation */}
+            <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+            
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-4xl font-bold mb-2 mobile-heading">Treasury & Tournaments</h1>

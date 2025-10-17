@@ -1,221 +1,227 @@
 "use client"
 
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React, { ReactNode } from 'react'
 import { useMobileInfo } from '@/hooks/use-mobile'
+import { cn } from '@/lib/utils'
 
 interface MobileLayoutProps {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
-  enableSafeArea?: boolean
-  optimizeForTouch?: boolean
 }
 
-export function MobileLayout({ 
-  children, 
-  className = "",
-  enableSafeArea = true,
-  optimizeForTouch = true
-}: MobileLayoutProps) {
-  const { isMobile, isTablet, orientation } = useMobileInfo()
+export function MobileLayout({ children, className }: MobileLayoutProps) {
+  const { isMobile, isTablet, isDesktop, isTouchDevice, orientation } = useMobileInfo()
 
   return (
-    <div
+    <div 
       className={cn(
-        "min-h-screen",
-        // Safe area support for devices with notches
-        enableSafeArea && [
-          "pt-[env(safe-area-inset-top)]",
-          "pr-[env(safe-area-inset-right)]", 
-          "pb-[env(safe-area-inset-bottom)]",
-          "pl-[env(safe-area-inset-left)]"
-        ],
-        // Touch optimization
-        optimizeForTouch && isMobile && [
-          "touch-pan-y", // Allow vertical scrolling
-          "select-none", // Prevent text selection on touch
-        ],
+        "min-h-screen bg-background",
+        // Safe area support for mobile devices
+        isMobile && "safe-area-top safe-area-bottom",
         // Orientation-specific styles
-        orientation === 'landscape' && isMobile && "landscape:px-4",
+        isMobile && orientation === 'landscape' && "px-safe-area-left px-safe-area-right",
         className
       )}
+      data-mobile={isMobile}
+      data-tablet={isTablet}
+      data-desktop={isDesktop}
+      data-touch={isTouchDevice}
+      data-orientation={orientation}
     >
       {children}
     </div>
   )
 }
 
-interface MobileContainerProps {
-  children: React.ReactNode
+interface ResponsiveContainerProps {
+  children: ReactNode
   className?: string
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-  padding?: 'none' | 'sm' | 'md' | 'lg'
 }
 
-export function MobileContainer({ 
-  children, 
-  className = "",
-  maxWidth = 'lg',
-  padding = 'md'
-}: MobileContainerProps) {
-  const { isMobile } = useMobileInfo()
-
-  const maxWidthClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md', 
-    lg: 'max-w-4xl',
-    xl: 'max-w-6xl',
-    full: 'max-w-full'
-  }
-
-  const paddingClasses = {
-    none: '',
-    sm: 'px-3 sm:px-4',
-    md: 'px-4 sm:px-6 lg:px-8',
-    lg: 'px-6 sm:px-8 lg:px-12'
-  }
+export function ResponsiveContainer({ children, className }: ResponsiveContainerProps) {
+  const { isMobile, isTablet } = useMobileInfo()
 
   return (
-    <div
-      className={cn(
-        "container mx-auto",
-        maxWidthClasses[maxWidth],
-        paddingClasses[padding],
-        // Mobile-specific adjustments
-        isMobile && "px-4",
-        className
-      )}
-    >
+    <div className={cn(
+      "container mx-auto",
+      // Responsive padding
+      isMobile ? "px-4 py-6" : isTablet ? "px-6 py-8" : "px-8 py-10",
+      className
+    )}>
       {children}
     </div>
   )
 }
 
-interface MobileGridProps {
-  children: React.ReactNode
+interface ResponsiveGridProps {
+  children: ReactNode
   className?: string
-  cols?: {
+  columns?: {
     mobile?: number
     tablet?: number
     desktop?: number
   }
-  gap?: 'sm' | 'md' | 'lg'
 }
 
-export function MobileGrid({ 
+export function ResponsiveGrid({ 
   children, 
-  className = "",
-  cols = { mobile: 1, tablet: 2, desktop: 3 },
-  gap = 'md'
-}: MobileGridProps) {
-  const gapClasses = {
-    sm: 'gap-2 sm:gap-3',
-    md: 'gap-3 sm:gap-4 lg:gap-6',
-    lg: 'gap-4 sm:gap-6 lg:gap-8'
-  }
-
-  const gridCols = {
-    1: 'grid-cols-1',
-    2: 'grid-cols-2',
-    3: 'grid-cols-3',
-    4: 'grid-cols-4',
-    5: 'grid-cols-5',
-    6: 'grid-cols-6'
-  }
+  className,
+  columns = { mobile: 1, tablet: 2, desktop: 3 }
+}: ResponsiveGridProps) {
+  const { isMobile, isTablet } = useMobileInfo()
 
   return (
-    <div
-      className={cn(
-        "grid mobile-grid",
-        cols.mobile && gridCols[cols.mobile as keyof typeof gridCols],
-        cols.tablet && `sm:${gridCols[cols.tablet as keyof typeof gridCols]}`,
-        cols.desktop && `lg:${gridCols[cols.desktop as keyof typeof gridCols]}`,
-        gapClasses[gap],
-        className
-      )}
-    >
+    <div className={cn(
+      "grid gap-4",
+      // Dynamic grid columns based on device
+      isMobile && `grid-cols-${columns.mobile}`,
+      isTablet && `md:grid-cols-${columns.tablet}`,
+      `lg:grid-cols-${columns.desktop}`,
+      // Responsive gap
+      isMobile ? "gap-4" : isTablet ? "gap-5" : "gap-6",
+      className
+    )}>
       {children}
     </div>
   )
 }
 
-interface MobileStackProps {
-  children: React.ReactNode
+interface TouchFriendlyCardProps {
+  children: ReactNode
   className?: string
-  spacing?: 'sm' | 'md' | 'lg'
-  align?: 'start' | 'center' | 'end'
+  onClick?: () => void
+  href?: string
 }
 
-export function MobileStack({ 
+export function TouchFriendlyCard({ 
   children, 
-  className = "",
-  spacing = 'md',
-  align = 'start'
-}: MobileStackProps) {
-  const spacingClasses = {
-    sm: 'space-y-2 sm:space-y-3',
-    md: 'space-y-4 sm:space-y-6',
-    lg: 'space-y-6 sm:space-y-8'
+  className, 
+  onClick,
+  href 
+}: TouchFriendlyCardProps) {
+  const { isTouchDevice, isMobile } = useMobileInfo()
+
+  const cardProps = {
+    className: cn(
+      "transition-all duration-200",
+      isTouchDevice && "touch-target active:scale-95",
+      isMobile && "mobile-card",
+      onClick && "cursor-pointer",
+      className
+    ),
+    onClick,
+    ...(href && { 
+      role: "button",
+      tabIndex: 0,
+      onKeyDown: (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          if (href) window.location.href = href
+          if (onClick) onClick()
+        }
+      }
+    })
   }
 
-  const alignClasses = {
-    start: 'items-start',
-    center: 'items-center', 
-    end: 'items-end'
-  }
-
-  return (
-    <div
-      className={cn(
-        "flex flex-col",
-        spacingClasses[spacing],
-        alignClasses[align],
-        className
-      )}
-    >
-      {children}
-    </div>
-  )
-}
-
-interface MobileSectionProps {
-  children: React.ReactNode
-  className?: string
-  title?: string
-  subtitle?: string
-  padding?: 'sm' | 'md' | 'lg'
-}
-
-export function MobileSection({ 
-  children, 
-  className = "",
-  title,
-  subtitle,
-  padding = 'md'
-}: MobileSectionProps) {
-  const paddingClasses = {
-    sm: 'py-4 sm:py-6',
-    md: 'py-6 sm:py-8 lg:py-12',
-    lg: 'py-8 sm:py-12 lg:py-16'
-  }
-
-  return (
-    <section className={cn(paddingClasses[padding], className)}>
-      {(title || subtitle) && (
-        <div className="mb-6 sm:mb-8">
-          {title && (
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-2 mobile-heading">
-              {title}
-            </h2>
-          )}
-          {subtitle && (
-            <p className="text-base sm:text-lg text-muted-foreground">
-              {subtitle}
-            </p>
-          )}
+  if (href && !onClick) {
+    return (
+      <a href={href} className="block">
+        <div {...cardProps}>
+          {children}
         </div>
-      )}
+      </a>
+    )
+  }
+
+  return (
+    <div {...cardProps}>
       {children}
-    </section>
+    </div>
   )
+}
+
+interface MobileOptimizedButtonProps {
+  children: ReactNode
+  className?: string
+  size?: 'sm' | 'default' | 'lg'
+  variant?: 'default' | 'outline' | 'ghost' | 'secondary'
+  onClick?: () => void
+  disabled?: boolean
+  type?: 'button' | 'submit' | 'reset'
+}
+
+export function MobileOptimizedButton({
+  children,
+  className,
+  size = 'default',
+  variant = 'default',
+  onClick,
+  disabled,
+  type = 'button'
+}: MobileOptimizedButtonProps) {
+  const { isTouchDevice, isMobile } = useMobileInfo()
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        // Base button styles
+        "inline-flex items-center justify-center rounded-md font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50",
+        
+        // Variant styles
+        variant === 'default' && "bg-primary text-primary-foreground hover:bg-primary/90",
+        variant === 'outline' && "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        variant === 'ghost' && "hover:bg-accent hover:text-accent-foreground",
+        variant === 'secondary' && "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        
+        // Size styles
+        size === 'sm' && "h-9 px-3 text-sm",
+        size === 'default' && "h-10 px-4 py-2",
+        size === 'lg' && "h-11 px-8",
+        
+        // Mobile optimizations
+        isTouchDevice && "mobile-button min-h-[44px]",
+        isMobile && size === 'sm' && "h-10 px-4 text-sm",
+        isMobile && size === 'default' && "h-12 px-6",
+        isMobile && size === 'lg' && "h-14 px-8 text-lg",
+        
+        // Touch feedback
+        isTouchDevice && "active:scale-95",
+        
+        className
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+// Hook for responsive values
+export function useResponsiveValue<T>(values: {
+  mobile: T
+  tablet?: T
+  desktop?: T
+}): T {
+  const { isMobile, isTablet } = useMobileInfo()
+  
+  if (isMobile) return values.mobile
+  if (isTablet && values.tablet) return values.tablet
+  return values.desktop || values.tablet || values.mobile
+}
+
+// Hook for responsive classes
+export function useResponsiveClasses(classes: {
+  mobile: string
+  tablet?: string
+  desktop?: string
+}): string {
+  const { isMobile, isTablet } = useMobileInfo()
+  
+  if (isMobile) return classes.mobile
+  if (isTablet && classes.tablet) return classes.tablet
+  return classes.desktop || classes.tablet || classes.mobile
 }

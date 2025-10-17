@@ -103,8 +103,8 @@ class OfflineModeManager {
   private onNetworkDisconnect() {
     console.log('Network disconnected, entering offline mode...')
     toast({
-      title: 'Offline Mode',
-      description: 'Your actions will be synced when connection is restored.',
+      title: 'Connection Lost',
+      description: 'Some features may be limited until connection is restored.',
       duration: 5000
     })
   }

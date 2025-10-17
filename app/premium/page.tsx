@@ -12,6 +12,7 @@ import { InteractiveTrendsAnalysis } from "@/components/interactive-trends-analy
 import { Star, TrendingUp, Target, Award, Calendar, BarChart3, Crown, AlertCircle, Plus, Edit, Trash2 } from "lucide-react"
 import { usePremium } from "@/hooks/use-premium"
 import { PremiumBadge, PremiumFeatureLock } from "@/components/premium-badge"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -85,6 +86,9 @@ export default function PremiumPage() {
   if (!isPremium) {
     return (
       <div className="container mx-auto px-4 py-8">
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+        
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2">Premium Analytics</h1>
           <p className="text-muted-foreground">
@@ -255,6 +259,9 @@ export default function PremiumPage() {
   // Premium user interface
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb Navigation */}
+      <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+      
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>

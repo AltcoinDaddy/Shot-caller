@@ -2,9 +2,9 @@ import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
 import { Navigation } from "@/components/navigation"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 import { Providers } from "@/components/providers"
 import { ErrorBoundary, AsyncErrorBoundary } from "@/components/error-boundary"
-import { NetworkStatusBanner } from "@/components/network-status"
 
 export const metadata: Metadata = {
   title: "ShotCaller - Fantasy Sports with NFTs",
@@ -30,9 +30,11 @@ export default function RootLayout({
         <ErrorBoundary>
           <Providers>
             <AsyncErrorBoundary>
-              <NetworkStatusBanner />
               <Navigation />
               <main className="min-h-screen pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                  <BreadcrumbNavigation />
+                </div>
                 {children}
               </main>
             </AsyncErrorBoundary>

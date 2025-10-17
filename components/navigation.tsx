@@ -11,14 +11,10 @@ import { useAuth } from "@/contexts/auth-context"
 import { usePremium } from "@/hooks/use-premium"
 import { Badge } from "@/components/ui/badge"
 
-const dashboardItems = [
-  { href: "/team", label: "MY TEAM" },
-  { href: "/leaderboard", label: "LEADERBOARD" },
-  { href: "/results", label: "RESULTS" },
+const navigationItems = [
+  { href: "/", label: "HOME" },
+  { href: "/dashboard", label: "DASHBOARD" },
   { href: "/marketplace", label: "MARKETPLACE" },
-  { href: "/treasury", label: "TREASURY" },
-  { href: "/premium", label: "PREMIUM" },
-  { href: "/profile", label: "PROFILE" },
 ]
 
 export function Navigation() {
@@ -37,9 +33,9 @@ export function Navigation() {
             </span>
           </Link>
 
-          {/* Desktop Navigation - Dashboard Items */}
+          {/* Desktop Navigation - Main Items */}
           <div className="hidden lg:flex items-center gap-6">
-            {dashboardItems.map((item) => (
+            {navigationItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -100,7 +96,7 @@ export function Navigation() {
         {mobileMenuOpen && (
           <div className="lg:hidden py-6 animate-in slide-in-from-top duration-300">
             <div className="flex flex-col gap-4">
-              {navItems.map((item) => (
+              {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

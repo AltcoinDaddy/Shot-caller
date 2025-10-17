@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Search, Filter, TrendingUp, Star, Wallet, Plus, RefreshCw } from "lucide-react"
 import { MarketplaceListingCard } from "@/components/marketplace-listing-card"
 import { CreateListingDialog } from "@/components/create-listing-dialog"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 import { useMarketplaceListings, useUserListings, useMarketplaceStats } from "@/hooks/use-marketplace"
 import { useWallet } from "@/hooks/use-wallet"
 import { useNFTOwnership } from "@/hooks/use-nft-ownership"
@@ -98,6 +99,9 @@ export default function MarketplacePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb Navigation */}
+      <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+      
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>

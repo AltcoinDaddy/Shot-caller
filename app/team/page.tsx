@@ -10,6 +10,7 @@ import { Trophy, Wallet, AlertCircle, CheckCircle, Clock, Loader2 } from "lucide
 import { useAuth } from "@/contexts/auth-context"
 import { useNFTOwnership } from "@/hooks/use-nft-ownership"
 import { usePremium } from "@/hooks/use-premium"
+import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 import { NFTMomentCard, NFTMomentCardSkeleton } from "@/components/nft-moment-card"
 import { WalletConnector } from "@/components/wallet-connector"
 import { ActiveBoosterEffects } from "@/components/active-booster-effects"
@@ -190,6 +191,9 @@ export default function TeamPage() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNavigation className="mb-4 sm:mb-6" />
+        
         {/* Header - Mobile Optimized */}
         <div className="mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4 holographic mobile-heading">
