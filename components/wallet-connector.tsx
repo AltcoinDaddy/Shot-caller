@@ -23,14 +23,35 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
   showBalance = false,
   showWalletSelection = true
 }) => {
-  const { user, isLoading, login, logout, isAuthenticated } = useAuth();
+  const { 
+    user, 
+    isLoading, 
+    login, 
+    logout, 
+    isAuthenticated, 
+    syncStatus, 
+    forceSyncProfile 
+  } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [showSelection, setShowSelection] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
     try {
       setError(null);
+      setIsConnecting(true);
+      
       await login();
+      
+      // Trigger immediate sync after successful connection
+      if (forceSyncProfile) {
+        try {
+          await forceSyncProfile();
+        } catch (syncError) {
+          console.warn('Initial sync failed after wallet connection:', syncError);
+          // Don't fail the connection if sync fails
+        }
+      }
     } catch (err: any) {
       // Enhanced error handling with specific messages
       let errorMessage = 'Failed to connect wallet. Please try again.';
@@ -47,6 +68,8 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
       
       setError(errorMessage);
       console.error('Wallet connection error:', err);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -100,11 +123,13 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
 
   const connectedWallet = getConnectedWalletInfo();
 
-  if (isLoading) {
+  if (isLoading || isConnecting) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm text-muted-foreground">Connecting...</span>
+        <span className="text-sm text-muted-foreground">
+          {isConnecting ? "Connecting & syncing..." : "Connecting..."}
+        </span>
       </div>
     );
   }
@@ -121,12 +146,20 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
         <div className="space-y-3">
           <Button 
             onClick={handleConnect}
-            disabled={isLoading}
+            disabled={isLoading || isConnecting || syncStatus.isActive}
             className="w-full flex items-center gap-2 touch-target"
             size="default"
           >
-            <Wallet className="h-4 w-4" />
-            <span className="text-sm sm:text-base">Connect Wallet</span>
+            {(isConnecting || syncStatus.isActive) ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Wallet className="h-4 w-4" />
+            )}
+            <span className="text-sm sm:text-base">
+              {isConnecting ? "Connecting..." : 
+               syncStatus.isActive ? "Syncing..." : 
+               "Connect Wallet"}
+            </span>
           </Button>
           
           {showWalletSelection && (
@@ -222,13 +255,34 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({
 
 // Compact version for navigation
 export const WalletConnectorCompact: React.FC<{ className?: string }> = ({ className = "" }) => {
-  const { user, isLoading, login, logout, isAuthenticated } = useAuth();
+  const { 
+    user, 
+    isLoading, 
+    login, 
+    logout, 
+    isAuthenticated, 
+    syncStatus, 
+    forceSyncProfile 
+  } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
     try {
       setError(null);
+      setIsConnecting(true);
+      
       await login();
+      
+      // Trigger immediate sync after successful connection
+      if (forceSyncProfile) {
+        try {
+          await forceSyncProfile();
+        } catch (syncError) {
+          console.warn('Initial sync failed after wallet connection:', syncError);
+          // Don't fail the connection if sync fails
+        }
+      }
     } catch (err: any) {
       let errorMessage = 'Failed to connect wallet';
       
@@ -240,6 +294,8 @@ export const WalletConnectorCompact: React.FC<{ className?: string }> = ({ class
       
       setError(errorMessage);
       console.error('Wallet connection error:', err);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -288,7 +344,7 @@ export const WalletConnectorCompact: React.FC<{ className?: string }> = ({ class
 
   const connectedWallet = getConnectedWalletInfo();
 
-  if (isLoading) {
+  if (isLoading || isConnecting) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <Loader2 className="h-4 w-4 animate-spin" />
@@ -300,12 +356,16 @@ export const WalletConnectorCompact: React.FC<{ className?: string }> = ({ class
     return (
       <Button 
         onClick={handleConnect}
-        disabled={isLoading}
+        disabled={isLoading || isConnecting || syncStatus.isActive}
         size="sm"
         className={`flex items-center gap-2 ${className}`}
       >
-        <Wallet className="h-4 w-4" />
-        Connect
+        {(isConnecting || syncStatus.isActive) ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Wallet className="h-4 w-4" />
+        )}
+        {isConnecting ? "Connecting" : syncStatus.isActive ? "Syncing" : "Connect"}
       </Button>
     );
   }

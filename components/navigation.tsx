@@ -10,6 +10,7 @@ import { WalletConnectorCompact } from "@/components/wallet-connector"
 import { useAuth } from "@/contexts/auth-context"
 import { usePremium } from "@/hooks/use-premium"
 import { Badge } from "@/components/ui/badge"
+import { NavigationSyncIndicator } from "@/components/navigation-sync-indicator"
 
 const navigationItems = [
   { href: "/", label: "HOME" },
@@ -20,7 +21,14 @@ const navigationItems = [
 export function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { isAuthenticated, isEligible, eligibilityReason, collections } = useAuth()
+  const { 
+    isAuthenticated, 
+    isEligible, 
+    eligibilityReason, 
+    collections, 
+    syncStatus, 
+    forceSyncProfile 
+  } = useAuth()
   const { isPremium, daysRemaining, isExpiringSoon } = usePremium()
 
   return (
@@ -66,6 +74,12 @@ export function Navigation() {
                 </Badge>
               )}
               <WalletConnectorCompact />
+              {isAuthenticated && (
+                <NavigationSyncIndicator
+                  syncStatus={syncStatus}
+                  onRetrySync={forceSyncProfile}
+                />
+              )}
               {isAuthenticated && !isEligible && (
                 <div className="flex items-center gap-1">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -113,6 +127,14 @@ export function Navigation() {
               {/* Mobile Wallet Connector */}
               <div className="mt-4 space-y-2">
                 <WalletConnectorCompact className="w-full" />
+                {isAuthenticated && (
+                  <div className="flex justify-center">
+                    <NavigationSyncIndicator
+                      syncStatus={syncStatus}
+                      onRetrySync={forceSyncProfile}
+                    />
+                  </div>
+                )}
                 {isAuthenticated && !isEligible && eligibilityReason && (
                   <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
                     <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />

@@ -43,7 +43,14 @@ export const useNFTOwnership = (
   autoRefresh: boolean = true,
   refreshInterval: number = 5 * 60 * 1000 // 5 minutes
 ): UseNFTOwnershipReturn => {
-  const { user, isAuthenticated } = useAuth();
+  const { 
+    user, 
+    isAuthenticated, 
+    nftCollection, 
+    syncStatus, 
+    onSyncStatusChange,
+    refreshNFTCollection 
+  } = useAuth();
   
   // State
   const [ownership, setOwnership] = useState<NFTOwnership | null>(null);
@@ -52,8 +59,8 @@ export const useNFTOwnership = (
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Derived state
-  const moments = ownership?.moments || [];
+  // Derived state - prioritize sync-aware data from auth context
+  const moments = nftCollection.length > 0 ? nftCollection : (ownership?.moments || []);
   const eligibleMoments = moments.filter(moment => 
     moment.sport === 'NBA' || moment.sport === 'NFL'
   );
@@ -124,10 +131,19 @@ export const useNFTOwnership = (
     }
   }, [isAuthenticated, user.addr]);
 
-  // Refresh ownership data
+  // Refresh ownership data - use sync-aware method when available
   const refreshOwnership = useCallback(async () => {
-    await loadOwnership(false); // Force refresh without cache
-  }, [loadOwnership]);
+    if (refreshNFTCollection) {
+      try {
+        await refreshNFTCollection();
+      } catch (error) {
+        console.warn('Sync-aware NFT refresh failed, falling back to direct method:', error);
+        await loadOwnership(false); // Fallback to direct method
+      }
+    } else {
+      await loadOwnership(false); // Force refresh without cache
+    }
+  }, [loadOwnership, refreshNFTCollection]);
 
   // Verify specific moment ownership
   const verifyMoment = useCallback(async (
@@ -184,14 +200,37 @@ export const useNFTOwnership = (
   // Load data on mount and when authentication changes
   useEffect(() => {
     if (isAuthenticated && user.addr) {
-      loadOwnership(true);
+      // Only load if we don't have sync-aware data
+      if (nftCollection.length === 0) {
+        loadOwnership(true);
+      }
       loadDisneyNFTs();
     } else {
       setOwnership(null);
       setDisneyNFTs([]);
       setError(null);
     }
-  }, [isAuthenticated, user.addr, loadOwnership, loadDisneyNFTs]);
+  }, [isAuthenticated, user.addr, nftCollection.length, loadOwnership, loadDisneyNFTs]);
+
+  // Subscribe to sync events for real-time updates
+  useEffect(() => {
+    if (!isAuthenticated || !onSyncStatusChange) return;
+
+    const unsubscribe = onSyncStatusChange((status) => {
+      // Update loading state based on sync status
+      if (status.isActive && status.currentOperation === 'nft_collection_fetch') {
+        setIsLoading(true);
+      } else if (!status.isActive) {
+        setIsLoading(false);
+        // Clear any errors when sync completes successfully
+        if (status.lastSync) {
+          setError(null);
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [isAuthenticated, onSyncStatusChange]);
 
   // Auto-refresh functionality
   useEffect(() => {

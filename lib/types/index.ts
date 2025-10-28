@@ -6,6 +6,7 @@ export * from './booster';
 export * from './premium';
 export * from './sponsorship';
 export * from './player-stats';
+export * from './sync';
 
 // Additional shared types for caching
 export interface User {

@@ -1,10 +1,22 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import { fcl, isDapperWallet, isFlowWallet, getWalletServiceInfo } from '@/lib/flow-config';
 import { sessionStorage, validateFlowAddress } from '@/lib/session-storage';
 import { verifyWalletAddress, verifyGameplayEligibility } from '@/lib/wallet-verification';
 import { handleError, ErrorType } from '@/lib/utils/error-handling';
+import { ConcreteWalletProfileSyncManager, walletProfileSyncManager } from '@/lib/services/wallet-profile-sync-manager';
+import {
+  SyncStatus,
+  ProfileData,
+  SyncEvent,
+  SyncEventType,
+  WalletType,
+  ProfileStats,
+  Achievement,
+  NFTSyncResult,
+  SyncResult
+} from '@/lib/types/sync';
 
 interface User {
   addr: string | null;
@@ -33,6 +45,20 @@ interface AuthContextType {
   refreshEligibility: () => Promise<void>;
   walletType: 'dapper' | 'flow' | 'other' | null;
   walletInfo: any;
+  
+  // New sync-related properties
+  syncStatus: SyncStatus;
+  profileData: ProfileData | null;
+  nftCollection: any[];
+  
+  // New sync methods
+  forceSyncProfile: () => Promise<void>;
+  refreshNFTCollection: () => Promise<void>;
+  getSyncHistory: () => SyncEvent[];
+  
+  // Event subscriptions
+  onSyncStatusChange: (callback: (status: SyncStatus) => void) => () => void;
+  onProfileDataChange: (callback: (data: ProfileData | null) => void) => () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +79,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [collections, setCollections] = useState<string[]>([]);
   const [walletType, setWalletType] = useState<'dapper' | 'flow' | 'other' | null>(null);
   const [walletInfo, setWalletInfo] = useState<any>(null);
+  
+  // New sync-related state
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    isActive: false,
+    lastSync: null,
+    nextSync: null,
+    failureCount: 0
+  });
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [nftCollection, setNftCollection] = useState<any[]>([]);
+  
+  // Sync manager instance and event handlers
+  const syncManagerRef = useRef<ConcreteWalletProfileSyncManager | null>(null);
+  const syncEventHandlersRef = useRef<Map<string, (status: SyncStatus) => void>>(new Map());
+  const profileEventHandlersRef = useRef<Map<string, (data: ProfileData | null) => void>>(new Map());
 
   // Check gameplay eligibility when user changes
   const checkEligibility = async (address: string) => {
@@ -82,10 +123,145 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Initialize sync manager
+  const initializeSyncManager = useCallback(() => {
+    if (!syncManagerRef.current) {
+      // Use the default singleton instance
+      syncManagerRef.current = walletProfileSyncManager;
+
+      // Subscribe to sync events
+      syncManagerRef.current.subscribe(SyncEventType.PROFILE_SYNC_STARTED, (event) => {
+        setSyncStatus(prev => ({ ...prev, isActive: true, currentOperation: 'profile_sync' }));
+      });
+
+      syncManagerRef.current.subscribe(SyncEventType.PROFILE_SYNC_COMPLETED, (event) => {
+        const result = event.data as SyncResult;
+        setSyncStatus(prev => ({
+          ...prev,
+          isActive: false,
+          lastSync: result.timestamp,
+          currentOperation: undefined
+        }));
+      });
+
+      syncManagerRef.current.subscribe(SyncEventType.NFT_COLLECTION_UPDATED, (event) => {
+        const result = event.data as NFTSyncResult;
+        // Update NFT collection state based on sync result
+        // This would typically fetch the updated collection data
+        if (user.addr) {
+          checkEligibility(user.addr);
+        }
+      });
+
+      syncManagerRef.current.subscribe(SyncEventType.SYNC_ERROR, (event) => {
+        setSyncStatus(prev => ({
+          ...prev,
+          isActive: false,
+          failureCount: prev.failureCount + 1,
+          currentOperation: undefined
+        }));
+      });
+    }
+  }, [user.addr]);
+
+  // Sync-related methods
+  const forceSyncProfile = useCallback(async () => {
+    if (!user.addr || !syncManagerRef.current) {
+      throw new Error('No wallet connected or sync manager not initialized');
+    }
+
+    try {
+      const result = await syncManagerRef.current.syncWalletToProfile(user.addr, true);
+      
+      // Update profile data based on sync result
+      if (result.success) {
+        const newProfileData: ProfileData = {
+          address: user.addr,
+          username: user.addr,
+          walletType: walletType === 'dapper' ? WalletType.DAPPER : 
+                     walletType === 'flow' ? WalletType.FLOW : WalletType.OTHER,
+          collections,
+          stats: {
+            totalNFTs: nftCollection.length,
+            eligibleMoments: collections.length,
+            weeklyScore: 0,
+            seasonRank: 0,
+            wins: 0,
+            losses: 0,
+            totalPoints: 0
+          } as ProfileStats,
+          achievements: [] as Achievement[],
+          lastUpdated: new Date()
+        };
+        
+        setProfileData(newProfileData);
+        
+        // Notify profile data change handlers
+        profileEventHandlersRef.current.forEach(handler => {
+          try {
+            handler(newProfileData);
+          } catch (error) {
+            console.error('Error in profile data change handler:', error);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Force sync profile failed:', error);
+      throw error;
+    }
+  }, [user.addr, walletType, collections, nftCollection.length]);
+
+  const refreshNFTCollection = useCallback(async () => {
+    if (!user.addr || !syncManagerRef.current) {
+      throw new Error('No wallet connected or sync manager not initialized');
+    }
+
+    try {
+      const result = await syncManagerRef.current.syncNFTCollection(user.addr);
+      
+      if (result.success) {
+        // Refresh eligibility after NFT collection sync
+        await checkEligibility(user.addr);
+      }
+    } catch (error) {
+      console.error('Refresh NFT collection failed:', error);
+      throw error;
+    }
+  }, [user.addr]);
+
+  const getSyncHistory = useCallback((): SyncEvent[] => {
+    // Return sync history from sync manager
+    // This is a simplified implementation - actual history would be maintained by sync manager
+    return [];
+  }, []);
+
+  // Event subscription methods
+  const onSyncStatusChange = useCallback((callback: (status: SyncStatus) => void): (() => void) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    syncEventHandlersRef.current.set(id, callback);
+    
+    return () => {
+      syncEventHandlersRef.current.delete(id);
+    };
+  }, []);
+
+  const onProfileDataChange = useCallback((callback: (data: ProfileData | null) => void): (() => void) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    profileEventHandlersRef.current.set(id, callback);
+    
+    return () => {
+      profileEventHandlersRef.current.delete(id);
+    };
+  }, []);
+
   useEffect(() => {
+    // Initialize sync manager
+    initializeSyncManager();
+
     // Subscribe to authentication state changes
-    const unsubscribe = fcl.currentUser.subscribe((currentUser) => {
+    const unsubscribe = fcl.currentUser.subscribe(async (currentUser) => {
       const user = convertCurrentUser(currentUser);
+      const previousUser = { ...user };
       setUser(user);
       
       // Determine wallet type and info
@@ -108,16 +284,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setWalletInfo(null);
       }
       
-      // Save session when user logs in
+      // Handle wallet connection/disconnection events
       if (user.loggedIn && user.addr) {
+        // Save session when user logs in
         sessionStorage.saveSession(user.addr, user.services);
-        checkEligibility(user.addr);
+        await checkEligibility(user.addr);
+        
+        // Trigger sync manager wallet connection event
+        if (syncManagerRef.current && (!previousUser.loggedIn || previousUser.addr !== user.addr)) {
+          try {
+            await syncManagerRef.current.onWalletConnect(user.addr, user.services || []);
+          } catch (error) {
+            console.error('Sync manager wallet connect failed:', error);
+          }
+        }
       } else {
         // Clear session when user logs out
         sessionStorage.clearSession();
         setIsEligible(false);
         setEligibilityReason(undefined);
         setCollections([]);
+        
+        // Clear sync-related state
+        setProfileData(null);
+        setNftCollection([]);
+        setSyncStatus({
+          isActive: false,
+          lastSync: null,
+          nextSync: null,
+          failureCount: 0
+        });
+        
+        // Trigger sync manager wallet disconnection event
+        if (syncManagerRef.current && previousUser.loggedIn) {
+          try {
+            await syncManagerRef.current.onWalletDisconnect();
+          } catch (error) {
+            console.error('Sync manager wallet disconnect failed:', error);
+          }
+        }
       }
     });
     
@@ -164,13 +369,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return () => {
       unsubscribe();
+      // Clean up sync manager
+      if (syncManagerRef.current) {
+        syncManagerRef.current = null;
+      }
+      syncEventHandlersRef.current.clear();
+      profileEventHandlersRef.current.clear();
     };
-  }, []);
+  }, [initializeSyncManager]);
 
   const login = async (): Promise<void> => {
     return handleError(
       async () => {
         setIsLoading(true);
+        
+        // Initialize sync manager if not already done
+        initializeSyncManager();
+        
         await fcl.authenticate();
         
         // Wait for authentication to complete and get user info
@@ -185,6 +400,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Save session and check eligibility
           sessionStorage.saveSession(currentUser.addr, currentUser.services);
           await checkEligibility(currentUser.addr);
+          
+          // Trigger sync manager wallet connection
+          if (syncManagerRef.current) {
+            try {
+              await syncManagerRef.current.onWalletConnect(currentUser.addr, currentUser.services || []);
+            } catch (error) {
+              console.error('Sync manager initialization failed:', error);
+              // Don't fail login if sync fails
+            }
+          }
         }
       },
       {
@@ -206,6 +431,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return handleError(
       async () => {
         setIsLoading(true);
+        
+        // Trigger sync manager wallet disconnection
+        if (syncManagerRef.current) {
+          try {
+            await syncManagerRef.current.onWalletDisconnect();
+          } catch (error) {
+            console.error('Sync manager disconnect failed:', error);
+            // Don't fail logout if sync cleanup fails
+          }
+        }
+        
         await fcl.unauthenticate();
         
         // Clear session storage
@@ -222,6 +458,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setCollections([]);
         setWalletType(null);
         setWalletInfo(null);
+        
+        // Clear sync-related state
+        setProfileData(null);
+        setNftCollection([]);
+        setSyncStatus({
+          isActive: false,
+          lastSync: null,
+          nextSync: null,
+          failureCount: 0
+        });
       },
       {
         errorType: ErrorType.AUTHENTICATION,
@@ -239,6 +485,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setCollections([]);
           setWalletType(null);
           setWalletInfo(null);
+          
+          // Clear sync-related state
+          setProfileData(null);
+          setNftCollection([]);
+          setSyncStatus({
+            isActive: false,
+            lastSync: null,
+            nextSync: null,
+            failureCount: 0
+          });
         }
       }
     ).finally(() => {
@@ -260,6 +516,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshEligibility,
     walletType,
     walletInfo,
+    
+    // New sync-related properties
+    syncStatus,
+    profileData,
+    nftCollection,
+    
+    // New sync methods
+    forceSyncProfile,
+    refreshNFTCollection,
+    getSyncHistory,
+    
+    // Event subscriptions
+    onSyncStatusChange,
+    onProfileDataChange,
   };
 
   return (
