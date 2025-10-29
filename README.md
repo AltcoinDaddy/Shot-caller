@@ -1,183 +1,421 @@
-## 👋 Welcome Flow Developer!
+# 🏆 ShotCaller - NFT Fantasy Sports Platform
 
-This project is a starting point for you to develop smart contracts on the Flow Blockchain. It comes with example contracts, scripts, transactions, and tests to help you get started.
+**Transform your NBA Top Shot and NFL All Day NFTs into competitive fantasy game assets**
 
-## 🔨 Getting Started
+ShotCaller is a revolutionary fantasy sports platform built on the Flow blockchain that allows users to leverage their NBA Top Shot and NFL All Day NFT collections to compete in weekly fantasy contests, earn rewards, and climb leaderboards.
 
-Here are some essential resources to help you hit the ground running:
+## 🎯 Overview
 
-- **[Flow Documentation](https://developers.flow.com/)** - The official Flow Documentation is a great starting point to start learning about [building](https://developers.flow.com/build/flow) on Flow.
-- **[Cadence Documentation](https://cadence-lang.org/docs/language)** - Cadence is the native language for the Flow Blockchain. It is a resource-oriented programming language that is designed for developing smart contracts.  The documentation is a great place to start learning about the language.
-- **[Visual Studio Code](https://code.visualstudio.com/)** and the **[Cadence Extension](https://marketplace.visualstudio.com/items?itemName=onflow.cadence)** - It is recommended to use the Visual Studio Code IDE with the Cadence extension installed.  This will provide syntax highlighting, code completion, and other features to support Cadence development.
-- **[Flow Clients](https://developers.flow.com/tools/clients)** - There are clients available in multiple languages to interact with the Flow Blockchain.  You can use these clients to interact with your smart contracts, run transactions, and query data from the network.
-- **[Block Explorers](https://developers.flow.com/ecosystem/block-explorers)** - Block explorers are tools that allow you to explore on-chain data.  You can use them to view transactions, accounts, events, and other information.  [Flowser](https://flowser.dev/) is a powerful block explorer for local development on the Flow Emulator.
+ShotCaller bridges the gap between NFT collecting and fantasy sports by turning static digital collectibles into active gaming assets. Users connect their Dapper wallets, build lineups using their NFT moments, and compete based on real-world athlete performance.
 
-## 📦 Project Structure
+### Key Features
 
-Your project has been set up with the following structure:
+- **NFT-Powered Fantasy Sports**: Use your NBA Top Shot and NFL All Day moments as fantasy players
+- **Weekly Competitions**: Compete in weekly contests with real-time scoring
+- **Blockchain Rewards**: Earn FLOW tokens and exclusive NFTs for top performance
+- **Marketplace Trading**: Buy and sell NFT moments with other users
+- **Premium Features**: Advanced analytics, lineup optimization, and exclusive tournaments
+- **Treasury System**: Community-driven reward distribution and sponsorship integration
 
-- `flow.json` - This is the configuration file for your project (analogous to a `package.json` file for NPM).  It has been initialized with a basic configuration to get started.
-- `/cadence` - This is where your Cadence smart contracts code lives
+## 🚀 Quick Start
 
-Inside the `cadence` folder you will find:
-- `/contracts` - This folder contains your Cadence contracts (these are deployed to the network and contain the business logic for your application)
-  - `Counter.cdc`
-- `/scripts` - This folder contains your Cadence scripts (read-only operations)
-  - `GetCounter.cdc`
-- `/transactions` - This folder contains your Cadence transactions (state-changing operations)
-  - `IncrementCounter.cdc`
-- `/tests` - This folder contains your Cadence tests (integration tests for your contracts, scripts, and transactions to verify they behave as expected)
-  - `Counter_test.cdc`
+### Prerequisites
 
-## Running the Existing Project
+- **Flow Wallet**: Dapper Wallet, Flow Wallet, or Blocto
+- **NFT Collection**: NBA Top Shot or NFL All Day moments
+- **FLOW Tokens**: For marketplace transactions and premium features
 
-### Executing the `GetCounter` Script
+### Getting Started
 
-To run the `GetCounter` script, use the following command:
+1. **Connect Your Wallet**
+   ```
+   Visit https://shotcaller.app
+   Click "Connect Wallet"
+   Authorize with your Flow wallet
+   ```
 
-```shell
-flow scripts execute cadence/scripts/GetCounter.cdc
+2. **Verify Your NFTs**
+   ```
+   Your collection will be automatically synced
+   Eligible NFTs will appear in your profile
+   ```
+
+3. **Build Your Team**
+   ```
+   Navigate to "My Team"
+   Select up to 5 NFTs for your lineup
+   Submit your lineup before weekly deadlines
+   ```
+
+4. **Compete & Earn**
+   ```
+   Track your performance on the leaderboard
+   Earn points based on real athlete stats
+   Claim rewards for top finishes
+   ```
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+- **Frontend**: Next.js 15.2.4, React 19, TypeScript 5
+- **Styling**: Tailwind CSS 4.1.9, shadcn/ui components
+- **Blockchain**: Flow blockchain, Cadence smart contracts
+- **Database**: Supabase (PostgreSQL)
+- **Caching**: Redis for performance optimization
+- **Authentication**: Flow wallet integration (@onflow/fcl)
+- **Testing**: Vitest, Playwright, Cadence Test Framework
+
+### Project Structure
+
+```
+shotcaller/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes and endpoints
+│   ├── dashboard/         # User dashboard
+│   ├── marketplace/       # NFT trading marketplace
+│   ├── team/             # Team management
+│   ├── leaderboard/      # Competition rankings
+│   ├── profile/          # User profiles
+│   ├── premium/          # Premium features
+│   ├── treasury/         # Treasury management
+│   └── results/          # Contest results
+├── components/            # Reusable React components
+├── hooks/                # Custom React hooks
+├── lib/                  # Utility functions and services
+├── contexts/             # React context providers
+├── cadence/              # Flow smart contracts
+├── test/                 # Test suites
+└── docs/                 # Documentation
 ```
 
-### Sending the `IncrementCounter` Transaction
+## 🎮 Core Features
 
-To run the `IncrementCounter` transaction, use the following command:
+### 1. Team Management
+- **Lineup Builder**: Select up to 5 NFTs from your collection
+- **Position Requirements**: Strategic team composition
+- **Deadline Management**: Submit lineups before weekly cutoffs
+- **Performance Tracking**: Real-time scoring updates
 
-```shell
-flow transactions send cadence/transactions/IncrementCounter.cdc
+### 2. Fantasy Scoring System
+- **NBA Scoring**: Points, rebounds, assists, steals, blocks
+- **NFL Scoring**: Passing/rushing yards, touchdowns, receptions
+- **Bonus Multipliers**: Rare NFTs provide scoring bonuses
+- **Weekly Updates**: Automated scoring from official league data
+
+### 3. NFT Marketplace
+- **Buy/Sell NFTs**: Trade moments with other users
+- **FLOW Payments**: Secure blockchain transactions
+- **Price Discovery**: Market-driven pricing
+- **Filtering & Search**: Find specific players, teams, rarities
+
+### 4. Leaderboard & Competitions
+- **Weekly Contests**: Regular competition cycles
+- **Season Rankings**: Long-term performance tracking
+- **Prize Pools**: FLOW token rewards for top performers
+- **Achievement System**: Unlock badges and milestones
+
+### 5. Premium Features
+- **Advanced Analytics**: Detailed performance insights
+- **Lineup Optimization**: AI-powered team suggestions
+- **Exclusive Tournaments**: Premium-only competitions
+- **Priority Support**: Enhanced customer service
+
+### 6. Treasury System
+- **Community Rewards**: Distributed prize pools
+- **Sponsorship Integration**: Brand partnerships and sponsored tournaments
+- **Governance**: Community voting on platform decisions
+- **Revenue Sharing**: Transparent fee distribution
+
+## 🔧 Development Setup
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/shotcaller.git
+cd shotcaller
+
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your configuration
+
+# Set up database
+pnpm db:setup
+
+# Start development server
+pnpm dev
 ```
 
-To learn more about using the CLI, check out the [Flow CLI Documentation](https://developers.flow.com/tools/flow-cli).
+### Environment Variables
 
-## 👨‍💻 Start Developing
+```bash
+# Flow Configuration
+NEXT_PUBLIC_FLOW_NETWORK=testnet
+NEXT_PUBLIC_FLOW_ACCESS_NODE=https://rest-testnet.onflow.org
+FLOW_PRIVATE_KEY=your_private_key
 
-### Creating a New Contract
+# Database
+DATABASE_URL=your_supabase_url
+DATABASE_ANON_KEY=your_supabase_anon_key
 
-To add a new contract to your project, run the following command:
+# Redis Cache
+REDIS_URL=your_redis_url
 
-```shell
-flow generate contract
+# API Keys
+FINDLABS_API_KEY=your_findlabs_key
+SPORTS_DATA_API_KEY=your_sports_api_key
 ```
 
-This command will create a new contract file and add it to the `flow.json` configuration file.
+### Available Scripts
 
-### Creating a New Script
+```bash
+# Development
+pnpm dev              # Start development server
+pnpm build            # Build for production
+pnpm start            # Start production server
 
-To add a new script to your project, run the following command:
+# Testing
+pnpm test             # Run unit tests
+pnpm test:e2e         # Run end-to-end tests
+pnpm test:contracts   # Test Cadence contracts
+pnpm test:integration # Run integration tests
 
-```shell
-flow generate script
+# Database
+pnpm db:migrate       # Run database migrations
+pnpm db:seed          # Seed with sample data
+pnpm db:reset         # Reset database
+
+# Deployment
+pnpm deploy:staging   # Deploy to staging
+pnpm deploy:production # Deploy to production
 ```
 
-This command will create a new script file.  Scripts are used to read data from the blockchain and do not modify state (i.e. get the current balance of an account, get a user's NFTs, etc).
+## 🎯 API Reference
 
-You can import any of your own contracts or installed dependencies in your script file using the `import` keyword.  For example:
+### Authentication
+All API endpoints require Flow wallet authentication via FCL.
 
-```cadence
-import "Counter"
+### Core Endpoints
+
+#### NFT Management
+```
+GET /api/nfts                    # Get user's NFT collection
+GET /api/nfts/verify/:momentId   # Verify NFT ownership
+POST /api/nfts/sync              # Sync collection from blockchain
 ```
 
-### Creating a New Transaction
-
-To add a new transaction to your project you can use the following command:
-
-```shell
-flow generate transaction
+#### Team Management
+```
+GET /api/lineups/current         # Get current lineup
+POST /api/lineups/submit         # Submit new lineup
+GET /api/lineups/history         # Get lineup history
 ```
 
-This command will create a new transaction file.  Transactions are used to modify the state of the blockchain (i.e purchase an NFT, transfer tokens, etc).
-
-You can import any dependencies as you would in a script file.
-
-### Creating a New Test
-
-To add a new test to your project you can use the following command:
-
-```shell
-flow generate test
+#### Marketplace
+```
+GET /api/marketplace/listings    # Get marketplace listings
+POST /api/marketplace/listings   # Create new listing
+POST /api/marketplace/purchase   # Purchase NFT
+DELETE /api/marketplace/cancel   # Cancel listing
 ```
 
-This command will create a new test file.  Tests are used to verify that your contracts, scripts, and transactions are working as expected.
-
-### Installing External Dependencies
-
-If you want to use external contract dependencies (such as NonFungibleToken, FlowToken, FungibleToken, etc.) you can install them using [Flow CLI Dependency Manager](https://developers.flow.com/tools/flow-cli/dependency-manager).
-
-For example, to install the NonFungibleToken contract you can use the following command:
-
-```shell
-flow deps add mainnet://1d7e57aa55817448.NonFungibleToken
+#### Leaderboard
+```
+GET /api/leaderboard            # Get current rankings
+GET /api/leaderboard/history    # Get historical rankings
+GET /api/leaderboard/prizes     # Get prize information
 ```
 
-Contracts can be found using [ContractBrowser](https://contractbrowser.com/), but be sure to verify the authenticity before using third-party contracts in your project.
+#### Scoring
+```
+GET /api/scoring/weekly         # Get weekly scores
+GET /api/scoring/breakdown/:id  # Get detailed scoring breakdown
+POST /api/scoring/update        # Update scores (admin only)
+```
+
+## 🏆 Game Rules
+
+### Lineup Requirements
+- **Team Size**: 5 NFTs maximum
+- **Position Limits**: Varies by sport and contest type
+- **Rarity Bonuses**: Higher rarity NFTs provide scoring multipliers
+- **Deadline**: Lineups must be submitted before weekly cutoff
+
+### Scoring System
+
+#### NBA Scoring
+- **Points**: 1 point per point scored
+- **Rebounds**: 1.2 points per rebound
+- **Assists**: 1.5 points per assist
+- **Steals/Blocks**: 3 points each
+- **Turnovers**: -1 point each
+
+#### NFL Scoring
+- **Passing Yards**: 1 point per 25 yards
+- **Rushing/Receiving Yards**: 1 point per 10 yards
+- **Touchdowns**: 6 points each
+- **Interceptions/Fumbles**: -2 points each
+
+### Rarity Multipliers
+- **Common**: 1.0x multiplier
+- **Rare**: 1.1x multiplier
+- **Epic**: 1.25x multiplier
+- **Legendary**: 1.5x multiplier
+
+## 💰 Tokenomics
+
+### FLOW Token Usage
+- **Entry Fees**: Contest participation (optional)
+- **Marketplace**: NFT trading currency
+- **Premium**: Subscription payments
+- **Rewards**: Prize distribution
+
+### Fee Structure
+- **Marketplace Fee**: 3% of transaction value
+- **Premium Subscription**: 10 FLOW/month
+- **Contest Entry**: Varies by tournament
+
+### Revenue Distribution
+- **Treasury**: 30% of fees
+- **Reward Pool**: 70% of fees
+- **Development**: Funded through treasury
+
+## 🔒 Security
+
+### Smart Contract Security
+- **Audited Contracts**: Professional security audits
+- **Multi-sig Wallets**: Secure fund management
+- **Upgrade Patterns**: Safe contract upgrades
+
+### Data Protection
+- **Wallet-Only Auth**: No password storage
+- **Encrypted Data**: Sensitive information encryption
+- **Privacy Controls**: User data management
+
+### Best Practices
+- **Regular Updates**: Security patch deployment
+- **Monitoring**: Real-time threat detection
+- **Incident Response**: Rapid security response
+
+## 🚀 Deployment
+
+### Staging Environment
+```bash
+# Deploy to staging
+pnpm deploy:staging
+
+# Run health checks
+pnpm health:check
+
+# Monitor metrics
+pnpm monitor:metrics
+```
+
+### Production Deployment
+```bash
+# Validate environment
+pnpm validate:env
+
+# Deploy to production
+pnpm deploy:production
+
+# Set up production database
+pnpm setup:production-db
+```
+
+### Infrastructure
+- **Hosting**: Vercel for frontend, Railway for backend services
+- **Database**: Supabase (managed PostgreSQL)
+- **CDN**: Vercel Edge Network
+- **Monitoring**: Built-in performance monitoring
 
 ## 🧪 Testing
 
-To verify that your project is working as expected you can run the tests using the following command:
+### Test Coverage
+- **Unit Tests**: Component and utility testing
+- **Integration Tests**: API endpoint testing
+- **E2E Tests**: Full user flow testing
+- **Contract Tests**: Cadence smart contract testing
 
-```shell
-flow test
+### Running Tests
+```bash
+# All tests
+pnpm test
+
+# Specific test suites
+pnpm test:unit
+pnpm test:integration
+pnpm test:e2e
+pnpm test:contracts
+
+# With coverage
+pnpm test:coverage
 ```
 
-This command will run all tests with the `_test.cdc` suffix (these can be found in the `cadence/tests` folder). You can add more tests here using the `flow generate test` command (or by creating them manually).
+## 📊 Performance
 
-To learn more about testing in Cadence, check out the [Cadence Test Framework Documentation](https://cadence-lang.org/docs/testing-framework).
+### Optimization Features
+- **Caching**: Redis for API responses
+- **CDN**: Global content delivery
+- **Image Optimization**: Next.js image optimization
+- **Code Splitting**: Automatic bundle optimization
 
-## 🚀 Deploying Your Project
+### Monitoring
+- **Real-time Metrics**: Performance tracking
+- **Error Tracking**: Automated error reporting
+- **User Analytics**: Usage pattern analysis
 
-To deploy your project to the Flow network, you must first have a Flow account and have configured your deployment targets in the `flow.json` configuration file.
+## 🤝 Contributing
 
-You can create a new Flow account using the following command:
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new features
+5. Submit a pull request
 
-```shell
-flow accounts create
-```
+### Code Standards
+- **TypeScript**: Strict type checking
+- **ESLint**: Code linting
+- **Prettier**: Code formatting
+- **Conventional Commits**: Commit message format
 
-Learn more about setting up deployment targets in the [Flow CLI documentation](https://developers.flow.com/tools/flow-cli/deployment/project-contracts).
+### Pull Request Process
+1. Ensure all tests pass
+2. Update documentation
+3. Add changeset for releases
+4. Request code review
 
-### Deploying to the Flow Emulator
+## 📚 Documentation
 
-To deploy your project to the Flow Emulator, start the emulator using the following command:
+### Additional Resources
+- **[Flow Documentation](https://developers.flow.com/)**: Flow blockchain development
+- **[Cadence Language](https://cadence-lang.org/)**: Smart contract language
+- **[NBA Top Shot API](https://docs.nbatopshot.com/)**: NBA Top Shot integration
+- **[NFL All Day API](https://docs.nflallday.com/)**: NFL All Day integration
 
-```shell
-flow emulator --start
-```
+### Support
+- **Discord**: [Join our community](https://discord.gg/shotcaller)
+- **Documentation**: [docs.shotcaller.app](https://docs.shotcaller.app)
+- **Support Email**: support@shotcaller.app
 
-To deploy your project, run the following command:
+## 📄 License
 
-```shell
-flow project deploy --network=emulator
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-This command will start the Flow Emulator and deploy your project to it. You can now interact with your project using the Flow CLI or alternate [client](https://developers.flow.com/tools/clients).
+## 🙏 Acknowledgments
 
-### Deploying to Flow Testnet
+- **Flow Team**: Blockchain infrastructure and support
+- **Dapper Labs**: NBA Top Shot and NFL All Day partnerships
+- **Community**: Beta testers and early adopters
+- **Contributors**: Open source contributors and maintainers
 
-To deploy your project to Flow Testnet you can use the following command:
+---
 
-```shell
-flow project deploy --network=testnet
-```
+**Built with ❤️ on Flow blockchain**
 
-This command will deploy your project to Flow Testnet. You can now interact with your project on this network using the Flow CLI or any other Flow client.
-
-### Deploying to Flow Mainnet
-
-To deploy your project to Flow Mainnet you can use the following command:
-
-```shell
-flow project deploy --network=mainnet
-```
-
-This command will deploy your project to Flow Mainnet. You can now interact with your project using the Flow CLI or alternate [client](https://developers.flow.com/tools/clients).
-
-## 📚 Other Resources
-
-- [Cadence Design Patterns](https://cadence-lang.org/docs/design-patterns)
-- [Cadence Anti-Patterns](https://cadence-lang.org/docs/anti-patterns)
-- [Flow Core Contracts](https://developers.flow.com/build/core-contracts)
-
-## 🤝 Community
-- [Flow Community Forum](https://forum.flow.com/)
-- [Flow Discord](https://discord.gg/flow)
-- [Flow Twitter](https://x.com/flow_blockchain)
+*Transform your NFT collection into a championship fantasy team today!*

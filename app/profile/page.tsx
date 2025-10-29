@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Trophy, Wallet, TrendingUp, Calendar, Award, Star, RefreshCw, CheckCircle } from "lucide-react"
+import { Trophy, Wallet, TrendingUp, Calendar, Award, Star, RefreshCw, CheckCircle, Sparkles } from "lucide-react"
 import Image from "next/image"
 import { BreadcrumbNavigation } from "@/components/breadcrumb-navigation"
 import { useAuth } from "@/contexts/auth-context"
@@ -16,6 +16,9 @@ import { WalletConnector } from "@/components/wallet-connector"
 import { SyncStatusIndicator } from "@/components/sync-status-indicator"
 import { ProfileSyncStatus } from "@/components/profile-sync-status"
 import { SyncLoadingState } from "@/components/sync-loading-state"
+import { SyncSuccessNotification, SyncProgressNotification, CollectionUpdateNotification } from "@/components/sync-success-notification"
+import { ProfileDataTransition, ProfileStatsTransition, NFTCollectionTransition, AnimatedCounter } from "@/components/profile-data-transition"
+import { RealTimeSyncListener } from "@/components/real-time-sync-listener"
 import { cn } from "@/lib/utils"
 
 export default function ProfilePage() {
@@ -39,9 +42,13 @@ export default function ProfilePage() {
     isRefreshing,
     showSyncSuccess,
     profileUpdateAnimation,
+    collectionChangeDetected,
+    syncProgress,
+    autoRefreshEnabled,
     handleRefreshProfile,
     handleRefreshNFTs,
-    dismissSyncSuccess
+    dismissSyncSuccess,
+    enableAutoRefresh
   } = useProfileSync()
   
   // Override sync methods to use auth context directly
@@ -125,43 +132,62 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen py-12 relative overflow-hidden">
-      {/* Sync Notifications */}
-      {showSyncSuccess && (
-        <div className="fixed top-4 right-4 z-50 bg-green-100 border border-green-300 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span className="text-green-800">Profile synchronized successfully</span>
-          </div>
-        </div>
-      )}
+      {/* Real-time Sync Listener */}
+      <RealTimeSyncListener
+        onCollectionChange={(changeType, count) => {
+          console.log(`Collection ${changeType}: ${count} NFTs`);
+        }}
+        onProfileUpdate={(profileData) => {
+          console.log('Profile updated:', profileData);
+        }}
+        onSyncComplete={(success) => {
+          console.log('Sync completed:', success);
+        }}
+        autoRefreshInterval={5 * 60 * 1000} // 5 minutes
+        enableVisibilitySync={true}
+      />
       
-      {syncStatus.isActive && (
-        <div className="fixed top-4 right-4 z-50 bg-blue-100 border border-blue-300 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
-            <span className="text-blue-800">
-              {syncStatus.currentOperation ? 
-                `${syncStatus.currentOperation.replace(/_/g, ' ')}...` : 
-                "Synchronizing profile..."
-              }
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Enhanced Sync Notifications */}
+      <SyncSuccessNotification
+        isVisible={showSyncSuccess && !syncStatus.isActive}
+        onDismiss={dismissSyncSuccess}
+        title="Profile Synchronized"
+        description="Your profile and NFT collection are up to date"
+        variant="success"
+      />
+      
+      <SyncProgressNotification
+        isVisible={syncStatus.isActive}
+        progress={syncProgress}
+        currentOperation={syncStatus.currentOperation || "profile_sync"}
+        onDismiss={() => {}} // Don't allow dismissing active sync
+      />
+      
+      <CollectionUpdateNotification
+        isVisible={collectionChangeDetected}
+        changeType="updated"
+        count={Math.abs(moments.length - previousNFTCount)}
+        onDismiss={() => {}} // Auto-dismiss after timeout
+      />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <BreadcrumbNavigation className="mb-4 sm:mb-6" />
         
-        {/* Profile Header */}
-        <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Profile Header with Real-time Updates */}
+        <ProfileDataTransition
+          isUpdating={profileUpdateAnimation || syncStatus.isActive}
+          updateKey={`${user.addr}-${moments.length}-${eligibleNFTsCount}`}
+          className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700"
+        >
           <Card className={cn(
             "p-8 relative overflow-hidden holographic transition-all duration-500",
-            profileUpdateAnimation && "scale-[1.02] shadow-2xl",
-            showSyncSuccess && "ring-2 ring-green-500/50"
+            profileUpdateAnimation && "scale-[1.02] shadow-2xl ring-2 ring-blue-500/30",
+            showSyncSuccess && "ring-2 ring-green-500/50",
+            syncStatus.isActive && "ring-2 ring-blue-500/50 shadow-blue-500/20"
           )}>
             <div className="absolute inset-0 scan-line opacity-20" />
             
-            {/* Sync Status Header */}
+            {/* Enhanced Sync Status Header */}
             <div className="absolute top-4 right-4 flex items-center gap-2">
               <SyncStatusIndicator 
                 status={syncStatus} 
@@ -169,9 +195,15 @@ export default function ProfilePage() {
                 showLastSync={true}
               />
               {showSyncSuccess && (
-                <div className="flex items-center gap-1 text-green-600 animate-in fade-in slide-in-from-right-2">
+                <div className="flex items-center gap-1 text-green-600 animate-in fade-in slide-in-from-right-2 duration-300">
                   <CheckCircle className="w-4 h-4" />
                   <span className="text-sm font-medium">Synced</span>
+                </div>
+              )}
+              {collectionChangeDetected && (
+                <div className="flex items-center gap-1 text-purple-600 animate-in fade-in slide-in-from-right-2 duration-300">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-sm font-medium">Updated</span>
                 </div>
               )}
             </div>
@@ -242,19 +274,18 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6 text-center">
-                <div className="transition-all hover:scale-110 duration-300">
-                  <div className="text-4xl font-bold mb-1">{totalNFTs}</div>
-                  <div className="text-sm text-muted-foreground">Total NFTs</div>
-                </div>
-                <div className="transition-all hover:scale-110 duration-300">
-                  <div className="text-4xl font-bold mb-1">#{mockStats.seasonRank}</div>
-                  <div className="text-sm text-muted-foreground">Rank</div>
-                </div>
-              </div>
+              <ProfileStatsTransition
+                stats={{
+                  totalNFTs,
+                  eligibleMoments: eligibleNFTsCount,
+                  seasonRank: mockStats.seasonRank,
+                  totalPoints: mockStats.totalPoints
+                }}
+                isUpdating={profileUpdateAnimation || syncStatus.isActive}
+              />
             </div>
           </Card>
-        </div>
+        </ProfileDataTransition>
 
         {/* Sync Status Section */}
         {isAuthenticated && (
@@ -281,23 +312,53 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Simple NFT Collection Display */}
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+        {/* Enhanced NFT Collection Display with Real-time Updates */}
+        <NFTCollectionTransition
+          collectionCount={moments.length}
+          isLoading={nftsLoading || (isRefreshing && syncStatus.currentOperation === 'nft_collection_fetch')}
+          className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300"
+        >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold tracking-tight">MY NFT COLLECTION</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSyncNFTs}
-              disabled={isRefreshing || syncStatus.isActive}
-              className="gap-2"
-            >
-              <RefreshCw className={cn(
-                "h-4 w-4",
-                (isRefreshing || syncStatus.isActive) && "animate-spin"
-              )} />
-              Refresh NFTs
-            </Button>
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-bold tracking-tight">MY NFT COLLECTION</h2>
+              <div className="flex items-center gap-2">
+                <AnimatedCounter 
+                  value={moments.length} 
+                  className="text-lg font-semibold text-muted-foreground"
+                />
+                <span className="text-sm text-muted-foreground">
+                  ({eligibleNFTsCount} eligible)
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => enableAutoRefresh(!autoRefreshEnabled)}
+                className={cn(
+                  "text-xs",
+                  autoRefreshEnabled ? "text-green-600" : "text-muted-foreground"
+                )}
+              >
+                Auto-refresh: {autoRefreshEnabled ? "ON" : "OFF"}
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSyncNFTs}
+                disabled={isRefreshing || syncStatus.isActive}
+                className="gap-2"
+              >
+                <RefreshCw className={cn(
+                  "h-4 w-4",
+                  (isRefreshing || syncStatus.isActive) && "animate-spin"
+                )} />
+                Refresh NFTs
+              </Button>
+            </div>
           </div>
 
           <SyncLoadingState
@@ -310,26 +371,29 @@ export default function ProfilePage() {
               profileUpdateAnimation && "scale-[1.005]"
             )}>
               {moments.length > 0 ? moments.map((nft, index) => (
-                <Card
+                <ProfileDataTransition
                   key={nft.momentId}
-                  className="overflow-hidden group hover:border-foreground transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                  updateKey={`${nft.momentId}-${nft.playerName}`}
+                  transitionDuration={300}
                 >
-                  <div className="aspect-[3/4] relative">
-                    <Image
-                      src={nft.imageUrl || "/placeholder.svg"}
-                      alt={nft.playerName}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                      <Badge className="mb-2 bg-white/20 text-white border-white/40">{nft.sport}</Badge>
-                      <div className="font-bold text-xl mb-1">{nft.playerName}</div>
-                      <div className="text-sm text-white/80 mb-2">{nft.team}</div>
-                      <div className="text-xs text-white/60">#{nft.momentId}</div>
+                  <Card className="overflow-hidden group hover:border-foreground transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                    <div className="aspect-[3/4] relative">
+                      <Image
+                        src={nft.imageUrl || "/placeholder.svg"}
+                        alt={nft.playerName}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        <Badge className="mb-2 bg-white/20 text-white border-white/40">{nft.sport}</Badge>
+                        <div className="font-bold text-xl mb-1">{nft.playerName}</div>
+                        <div className="text-sm text-white/80 mb-2">{nft.team}</div>
+                        <div className="text-xs text-white/60">#{nft.momentId}</div>
+                      </div>
                     </div>
-                  </div>
-                </Card>
+                  </Card>
+                </ProfileDataTransition>
               )) : (
                 <div className="col-span-full text-center py-12">
                   <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -338,7 +402,7 @@ export default function ProfilePage() {
               )}
             </div>
           </SyncLoadingState>
-        </div>
+        </NFTCollectionTransition>
       </div>
     </div>
   )

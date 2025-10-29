@@ -1,138 +1,259 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle, RefreshCw, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, RefreshCw, X, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface SyncSuccessNotificationProps {
-  show: boolean;
-  message?: string;
+  isVisible: boolean;
+  syncProgress?: number;
+  isRefreshing?: boolean;
   onDismiss?: () => void;
-  autoHide?: boolean;
-  autoHideDelay?: number;
+  title?: string;
+  description?: string;
+  showProgress?: boolean;
+  variant?: "success" | "progress" | "collection-update";
   className?: string;
 }
 
 export function SyncSuccessNotification({
-  show,
-  message = "Profile synchronized successfully",
+  isVisible,
+  syncProgress = 0,
+  isRefreshing = false,
   onDismiss,
-  autoHide = true,
-  autoHideDelay = 3000,
+  title = "Profile Synchronized",
+  description = "Your profile has been updated successfully",
+  showProgress = false,
+  variant = "success",
   className
 }: SyncSuccessNotificationProps) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    if (show) {
-      setIsVisible(true);
-      
-      if (autoHide) {
-        const timer = setTimeout(() => {
-          setIsVisible(false);
-          setTimeout(() => onDismiss?.(), 300); // Wait for animation to complete
-        }, autoHideDelay);
-        
-        return () => clearTimeout(timer);
-      }
+    if (isVisible) {
+      setShouldRender(true);
+      // Trigger animation after render
+      setTimeout(() => setIsAnimating(true), 50);
     } else {
-      setIsVisible(false);
+      setIsAnimating(false);
+      // Remove from DOM after animation
+      setTimeout(() => setShouldRender(false), 300);
     }
-  }, [show, autoHide, autoHideDelay, onDismiss]);
+  }, [isVisible]);
 
-  if (!show && !isVisible) return null;
+  if (!shouldRender) return null;
+
+  const getVariantStyles = () => {
+    switch (variant) {
+      case "success":
+        return {
+          bg: "bg-green-50 dark:bg-green-950/20",
+          border: "border-green-200 dark:border-green-800",
+          icon: CheckCircle,
+          iconColor: "text-green-600 dark:text-green-400",
+          textColor: "text-green-800 dark:text-green-200"
+        };
+      case "progress":
+        return {
+          bg: "bg-blue-50 dark:bg-blue-950/20",
+          border: "border-blue-200 dark:border-blue-800",
+          icon: RefreshCw,
+          iconColor: "text-blue-600 dark:text-blue-400",
+          textColor: "text-blue-800 dark:text-blue-200"
+        };
+      case "collection-update":
+        return {
+          bg: "bg-purple-50 dark:bg-purple-950/20",
+          border: "border-purple-200 dark:border-purple-800",
+          icon: Sparkles,
+          iconColor: "text-purple-600 dark:text-purple-400",
+          textColor: "text-purple-800 dark:text-purple-200"
+        };
+      default:
+        return {
+          bg: "bg-gray-50 dark:bg-gray-950/20",
+          border: "border-gray-200 dark:border-gray-800",
+          icon: CheckCircle,
+          iconColor: "text-gray-600 dark:text-gray-400",
+          textColor: "text-gray-800 dark:text-gray-200"
+        };
+    }
+  };
+
+  const styles = getVariantStyles();
+  const Icon = styles.icon;
 
   return (
-    <div className={cn(
-      "fixed top-4 right-4 z-50 transition-all duration-300 ease-out",
-      isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0",
-      className
-    )}>
-      <Card className="p-4 bg-green-50 border-green-200 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <CheckCircle className="w-5 h-5 text-green-600" />
+    <div
+      className={cn(
+        "fixed top-4 right-4 z-50 transition-all duration-300 ease-out",
+        isAnimating 
+          ? "translate-x-0 opacity-100 scale-100" 
+          : "translate-x-full opacity-0 scale-95",
+        className
+      )}
+    >
+      <Card className={cn(
+        "p-4 shadow-lg backdrop-blur-sm min-w-[320px] max-w-[400px]",
+        styles.bg,
+        styles.border,
+        "animate-in slide-in-from-right-2 fade-in duration-300"
+      )}>
+        <div className="flex items-start gap-3">
+          <div className={cn(
+            "flex-shrink-0 p-1 rounded-full",
+            variant === "success" && "bg-green-100 dark:bg-green-900/30",
+            variant === "progress" && "bg-blue-100 dark:bg-blue-900/30",
+            variant === "collection-update" && "bg-purple-100 dark:bg-purple-900/30"
+          )}>
+            <Icon className={cn(
+              "w-5 h-5",
+              styles.iconColor,
+              isRefreshing && variant === "progress" && "animate-spin"
+            )} />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-green-800">
-              {message}
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className={cn("text-sm font-semibold", styles.textColor)}>
+                {title}
+              </h4>
+              {onDismiss && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onDismiss}
+                  className="h-6 w-6 p-0 hover:bg-black/10 dark:hover:bg-white/10"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+            
+            <p className={cn("text-xs", styles.textColor, "opacity-80")}>
+              {description}
             </p>
+            
+            {showProgress && (
+              <div className="mt-3 space-y-1">
+                <Progress 
+                  value={syncProgress} 
+                  className="h-1.5"
+                />
+                <div className="flex justify-between text-xs opacity-60">
+                  <span>Syncing...</span>
+                  <span>{Math.round(syncProgress)}%</span>
+                </div>
+              </div>
+            )}
           </div>
-          {onDismiss && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setIsVisible(false);
-                setTimeout(() => onDismiss(), 300);
-              }}
-              className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
         </div>
+        
+        {/* Animated border effect for success */}
+        {variant === "success" && isAnimating && (
+          <div className="absolute inset-0 rounded-lg border-2 border-green-400/50 animate-pulse" />
+        )}
       </Card>
     </div>
   );
 }
 
+export interface CollectionUpdateNotificationProps {
+  isVisible: boolean;
+  changeType: 'added' | 'removed' | 'updated';
+  count: number;
+  onDismiss?: () => void;
+  className?: string;
+}
+
+export function CollectionUpdateNotification({
+  isVisible,
+  changeType,
+  count,
+  onDismiss,
+  className
+}: CollectionUpdateNotificationProps) {
+  const getChangeMessage = () => {
+    const nftText = count === 1 ? 'NFT' : 'NFTs';
+    switch (changeType) {
+      case 'added':
+        return `${count} ${nftText} added to your collection`;
+      case 'removed':
+        return `${count} ${nftText} removed from your collection`;
+      case 'updated':
+        return `${count} ${nftText} updated in your collection`;
+      default:
+        return `Collection updated`;
+    }
+  };
+
+  const getIcon = () => {
+    switch (changeType) {
+      case 'added':
+        return TrendingUp;
+      case 'removed':
+        return TrendingUp; // Could use a different icon
+      case 'updated':
+        return Sparkles;
+      default:
+        return Sparkles;
+    }
+  };
+
+  return (
+    <SyncSuccessNotification
+      isVisible={isVisible}
+      onDismiss={onDismiss}
+      title="Collection Updated"
+      description={getChangeMessage()}
+      variant="collection-update"
+      className={className}
+    />
+  );
+}
+
 export interface SyncProgressNotificationProps {
-  show: boolean;
-  message?: string;
-  progress?: number;
-  onCancel?: () => void;
+  isVisible: boolean;
+  progress: number;
+  currentOperation?: string;
+  onDismiss?: () => void;
   className?: string;
 }
 
 export function SyncProgressNotification({
-  show,
-  message = "Synchronizing profile...",
+  isVisible,
   progress,
-  onCancel,
+  currentOperation = "Synchronizing",
+  onDismiss,
   className
 }: SyncProgressNotificationProps) {
-  if (!show) return null;
+  const getOperationText = (operation: string) => {
+    const operationMap: Record<string, string> = {
+      'wallet_verification': 'Verifying wallet connection',
+      'nft_collection_fetch': 'Fetching NFT collection',
+      'profile_data_update': 'Updating profile data',
+      'cache_invalidation': 'Refreshing cache',
+      'eligibility_check': 'Checking eligibility'
+    };
+    
+    return operationMap[operation] || operation.replace(/_/g, ' ');
+  };
 
   return (
-    <div className={cn(
-      "fixed top-4 right-4 z-50 animate-in slide-in-from-right-2 fade-in duration-300",
-      className
-    )}>
-      <Card className="p-4 bg-blue-50 border-blue-200 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-blue-800">
-              {message}
-            </p>
-            {progress !== undefined && (
-              <div className="mt-2">
-                <div className="w-full bg-blue-200 rounded-full h-1.5">
-                  <div 
-                    className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-          {onCancel && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onCancel}
-              className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
-      </Card>
-    </div>
+    <SyncSuccessNotification
+      isVisible={isVisible}
+      syncProgress={progress}
+      isRefreshing={true}
+      onDismiss={onDismiss}
+      title="Syncing Profile"
+      description={getOperationText(currentOperation)}
+      showProgress={true}
+      variant="progress"
+      className={className}
+    />
   );
 }

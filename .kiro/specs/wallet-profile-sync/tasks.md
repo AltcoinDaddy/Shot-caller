@@ -166,7 +166,7 @@ This implementation plan converts the wallet-profile synchronization design into
   - Update wallet connector to trigger immediate sync on connection
   - _Requirements: 1.1, 1.3, 3.5, 4.1_
 
-- [ ] 24. Add real-time profile updates
+- [-] 24. Add real-time profile updates
   - Implement automatic profile refresh when NFT collection changes are detected
   - Add visual feedback for successful synchronization with confirmation indicators
   - Create smooth transitions for profile data updates without jarring UI changes
