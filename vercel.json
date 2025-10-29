@@ -1,12 +1,6 @@
 {
   "version": 2,
   "name": "shotcaller-fantasy-game",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
   "env": {
     "NBA_API_KEY": "@nba-api-key",
     "NBA_API_BASE_URL": "@nba-api-base-url",
@@ -49,6 +43,8 @@
       "destination": "/api/$1"
     }
   ],
-  "regions": ["iad1"],
+  "regions": [
+    "iad1"
+  ],
   "framework": "nextjs"
 }
